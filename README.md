@@ -9,16 +9,19 @@ python setup.py install
 For tests see directory tests
 
 ## Wrapper in tomopy
->>> import tomopy
->>> obj = tomopy.shepp3d() # Generate an object.
->>> ang = tomopy.angles(180) # Generate uniformly spaced tilt angles.
->>> sim = tomopy.project(obj, ang) # Calculate projections.
->>>
->>> # Reconstruct object:
->>> rec = tomopy.recon(sim, ang, algorithm=tomopy.lprec,
->>>       lpmethod='fbp', filter_name='parzen', interp_type='cubic', ncore=1)
->>>
->>> # Show 64th slice of the reconstructed object.
->>> import pylab
->>> pylab.imshow(rec[64], cmap='gray')
->>> pylab.show()
+import tomopy
+
+obj = tomopy.shepp3d() # Generate an object.
+
+ang = tomopy.angles(180) # Generate uniformly spaced tilt angles.
+
+sim = tomopy.project(obj, ang) # Calculate projections.
+
+rec = tomopy.recon(sim, ang, algorithm=tomopy.lprec,
+      lpmethod='fbp', filter_name='parzen', interp_type='cubic', ncore=1)
+
+import pylab
+
+pylab.imshow(rec[64], cmap='gray')
+
+pylab.show()
