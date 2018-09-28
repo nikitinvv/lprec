@@ -1,0 +1,50 @@
+LPREC
+
+
+OVERVIEW
+
+A simple easy-to-use GUI for reconstruction tomography data by using the log-polar-based method, for details see:
+[1] Andersson, Fredrik, Marcus Carlsson, and Viktor V. Nikitin. "Fast algorithms and efficient GPU implementations 
+for the Radon transform and the back-projection operator represented as convolution operators." 
+SIAM Journal on Imaging Sciences 9.2 (2016): 637-664.
+
+
+
+DATA FORMATS
+
+Input data must have a standard HDF5 format with dataset names exchange/data, exchange/data_white, exchange/data_dark. 
+The output data, a set of reconstructed slices, will be stored as TIFF16 files.
+
+
+
+PARAMETERS DESCRIPTION
+
+Parameters for the transform that are automatically loaded from the opened HDF5 file:
+h5file - HDF5 file to be processed
+recdir - directory for reconstructions
+N - number of samples in radial direction (corresponds to the slice reconstruction size N x N)
+Nproj - number of samples in angular direction (number of projections projections) covering the interval [0,pi]
+Nslice - number of slices in reconstruction
+pad - pad sinogra or not
+
+Parameters that are controlled by user:
+
+filter - filter for data inversion (None,ramp,shepp-logan,hann,hamming)
+islice - slice number to reconstruct (if empty then reconstruct all slices) 
+center - center of object rotation when measuring data
+amp - amplitude to normalize the reconstructions [0,amp]
+
+
+
+INSTALLATION
+
+To install the package 
+1) set variable $CUDAHOME for cuda home directory if nvcc and its libraries are not installed in the default directory (/usr/lib64), 
+e.g. export CUDAHOME=/usr/local/cuda-8.0/
+
+2)run python setup.py build
+
+
+EXECUTION
+
+python build/lib.linux-x86_64-2.7/lprec.py
