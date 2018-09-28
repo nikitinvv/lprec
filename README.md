@@ -6,7 +6,7 @@ export CUDAHOME=/usr/local/cuda-8.0
 python setup.py install
 
 ## Tests
-For tests see directory tests
+See tests/
 
 ## Wrapper in tomopy
 import tomopy
