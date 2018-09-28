@@ -32,14 +32,14 @@ class lpTransform:
 		self.clphandle.initAdj(self.adjparsi,self.adjparamsf)	
 
 	def fwd(self,f):
-		Ros = np.zeros([f.shape[0],self.N,self.Nproj],dtype = 'float32')
+		Ros = np.zeros([f.shape[0],self.Nproj,self.N],dtype = 'float32')
 		self.clphandle.execFwdMany(Ros,f)
-		R = Ros[:,:,0::self.osangles]
+		R = Ros[:,0::self.osangles,:]
 		return R
 
 	def adj(self,R):
-		Ros = np.zeros([R.shape[0],self.N,self.Nproj],dtype = 'float32')
-		Ros[:,:,0::self.osangles] = R*self.osangles
+		Ros = np.zeros([R.shape[0],self.Nproj,self.N],dtype = 'float32')
+		Ros[:,0::self.osangles,:] = R*self.osangles
 		f = np.zeros([R.shape[0],self.N,self.N],dtype = 'float32')
 		self.clphandle.execAdjMany(f,Ros)
 		return f

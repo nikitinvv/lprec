@@ -43,7 +43,7 @@ class lpRgpu{
 	//filter
 	float* filter;
 	float* dfilter;
-	float* dRt;float2* dRc;
+	float2* dRc;
 	int interp_type;
 	cudaError_t err;
 
@@ -67,8 +67,8 @@ public:
 	void prefilter2D(float *df, float* dtmpf,uint width, uint height);
 	void execFwd();
 	void execAdj();
-	void execFwdMany(float* R, int Nslices2_, int Ns_, int Nproj_, float* f, int Nslices1_, int N2_, int N1_);
-	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Ns_, int Nproj_);
+	void execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_);
+	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_);
 	void applyFilter();
 	void padding(int Ns_, int shift);
 };

@@ -105,7 +105,7 @@ void lpRgpu::initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf)
 	cudaMemcpy(dfZadj,fZadj,Ntheta_R2C*Nrho*sizeof(float2),cudaMemcpyHostToDevice);
 
 	cudaChannelFormatDesc texf_desc = cudaCreateChannelDesc<float>();	
-	cudaExtent volumeSize = make_cudaExtent(Nproj,N,Nslices); 
+	cudaExtent volumeSize = make_cudaExtent(N,Nproj,Nslices); 
 	err = cudaMalloc3DArray(&dRa, &texf_desc, volumeSize,cudaArrayLayered); if (err!=0) callErr(cudaGetErrorString(err));
 	texR.addressMode[0] = cudaAddressModeWrap;
 	texR.addressMode[1] = cudaAddressModeWrap;
@@ -125,7 +125,6 @@ void lpRgpu::initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf)
 	
 		cufftPlan1d(&plan_f_forward,N*osfilter,CUFFT_C2C,Nproj);
 		cufftPlan1d(&plan_f_inverse,N*osfilter,CUFFT_C2C,Nproj);
-		err = cudaMalloc((void **)&dRt, Nproj*N*sizeof(float)); if (err!=0) callErr(cudaGetErrorString(err));
 		err = cudaMalloc((void **)&dRc, Nproj*N*osfilter*sizeof(float2)); if (err!=0) callErr(cudaGetErrorString(err));
 	}
 }
@@ -142,7 +141,6 @@ void lpRgpu::deleteAdj()
 	{
 		delete[] filter;
 		cudaFree(dfilter);
-		cudaFree(dRt);
 		cudaFree(dRc);
 		cufftDestroy(plan_f_forward);
 		cufftDestroy(plan_f_inverse);
@@ -172,31 +170,31 @@ cudaError_t copy3Dshifted(float *dst, int dstx,int dsty, cudaExtent dstext, floa
 
 
 //compute Radon transform for several slices
-void lpRgpu::execFwdMany(float* R, int Nslices2_, int N_, int Nproj_, float* f, int Nslices1_, int N2_, int N1_)
+void lpRgpu::execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_)
 {
 	cudaMemset(df,0,N*N*Nslices*sizeof(float));
 	err = copy3Dshifted(df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),make_cudaExtent(N1_,N2_,Nslices1_)); if(err!=0) callErr(cudaGetErrorString(err));  	    execFwd();
 	int shift = N_/2-cor;
-    err = copy3Dshifted(R,0,0,make_cudaExtent(Nproj_,N_,Nslices2_),dR,0,N/2-N_/2+shift,make_cudaExtent(Nproj, N, Nslices),make_cudaExtent(Nproj_,N_,Nslices2_)); if(err!=0) callErr(cudaGetErrorString(err));
+    err = copy3Dshifted(R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),dR,N/2-N_/2+shift,0,make_cudaExtent(N, Nproj, Nslices),make_cudaExtent(N_,Nproj_,Nslices2_)); if(err!=0) callErr(cudaGetErrorString(err));
 }
 
 //compute back-projection for several slices
-void lpRgpu::execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int N_, int Nproj_)
+void lpRgpu::execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_)
 {
 	cudaMemset(dR,0,Nproj*N*Nslices*sizeof(float));
 	int shift = N_/2-cor;
-        err = copy3Dshifted(dR,0,N/2-N_/2+shift,make_cudaExtent(Nproj, N, Nslices),R,0,0,make_cudaExtent(Nproj_,N_,Nslices2_),make_cudaExtent(Nproj_,N_,Nslices2_)); if(err!=0) callErr(cudaGetErrorString(err));   	   
+    err = copy3Dshifted(dR,N/2-N_/2+shift,0,make_cudaExtent(N, Nproj, Nslices),R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),make_cudaExtent(N_,Nproj_,Nslices2_)); if(err!=0) callErr(cudaGetErrorString(err));   	   
 	padding(N_,shift);
 	applyFilter();
 	execAdj();
-        err = copy3Dshifted(f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N1_,N2_,Nslices1_)); if(err!=0) callErr(cudaGetErrorString(err));  }
+    err = copy3Dshifted(f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N1_,N2_,Nslices1_)); if(err!=0) callErr(cudaGetErrorString(err));  }
 
 //padding
 void lpRgpu::padding(int N_, int shift)
 {
-	uint GS31 = (uint)ceil(Nproj/(float)MBS21);uint GS32 = (uint)ceil(N/(float)MBS22);uint GS33 = (uint)ceil(Nslices/(float)MBS33);
+	uint GS31 = (uint)ceil(N/(float)MBS21);uint GS32 = (uint)ceil(Nproj/(float)MBS22);uint GS33 = (uint)ceil(Nslices/(float)MBS33);
        dim3 dimBlock(MBS31,MBS32,MBS33);dim3 dimGrid(GS31,GS32,GS33);
-        padker<<<dimGrid,dimBlock>>>(dR,N/2-N_/2+shift,N/2+N_/2+shift-1,Nproj,N,Nslices);
+        padker<<<dimGrid,dimBlock>>>(dR,N/2-N_/2+shift,N/2+N_/2+shift-1,N,Nproj,Nslices);
 }
 
 //prefilter to compensate amplitudes in cubic interpolation
@@ -275,9 +273,10 @@ void lpRgpu::execAdj()
 	cudaMemset(dtmpR, 0, Nslices*Nproj*N*sizeof(float)); 
 	cudaMemset(df, 0, Nslices*N*N*sizeof(float)); 
 	//compensation for cubic interpolation
-	prefilter2D(dR,dtmpR,Nproj,N);
+
+	if(interp_type) prefilter2D(dR,dtmpR,N,Nproj);
 	//init gpu array with binded texture
-	copy3DDeviceToArray(dRa,dR,make_cudaExtent(Nproj, N, Nslices));
+	copy3DDeviceToArray(dRa,dR,make_cudaExtent(N, Nproj, Nslices));
 
 	//CUDA block and grid sizes
 	dim3 dimBlock(MBS31,MBS32,MBS33);
@@ -287,11 +286,11 @@ void lpRgpu::execAdj()
 		cudaMemset(dfl, 0, Nslices*Ntheta*Nrho*sizeof(float)); 
 		//interp from polar to log-polar grid
 		GS31 = (uint)ceil(ceil(sqrt(ags->Nlpidsadj))/(float)MBS31); GS32 = (uint)ceil(ceil(sqrt(ags->Nlpidsadj))/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid(GS31,GS32,GS33);
-		interp<<<dimGrid, dimBlock>>>(1+interp_type*3,dfl,ags->dlp2p1[k],ags->dlp2p2[k],MBS31*GS31,ags->Nlpidsadj,Nproj,N,Nslices,ags->dlpidsadj,Ntheta*Nrho);
+		interp<<<dimGrid, dimBlock>>>(1+interp_type*3,dfl,ags->dlp2p2[k],ags->dlp2p1[k],MBS31*GS31,ags->Nlpidsadj,N,Nproj,Nslices,ags->dlpidsadj,Ntheta*Nrho);
 
 		//interp from polar to log-polar grid additional points
 		GS31 = (uint)ceil(ceil(sqrt(ags->Nwids))/(float)MBS31); GS32 = (uint)ceil(ceil(sqrt(ags->Nwids))/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid4(GS31,GS32,GS33);
-		interp<<<dimGrid4, dimBlock>>>(1+interp_type*3,dfl,ags->dlp2p1w[k],ags->dlp2p2w[k],MBS31*GS31,ags->Nwids,Nproj,N,Nslices,ags->dwids,Ntheta*Nrho);
+		interp<<<dimGrid4, dimBlock>>>(1+interp_type*3,dfl,ags->dlp2p2w[k],ags->dlp2p1w[k],MBS31*GS31,ags->Nwids,N,Nproj,Nslices,ags->dwids,Ntheta*Nrho);
 
 		//Forward FFT
 		cufftExecR2C(plan_forward, (cufftReal*)dfl,(cufftComplex*)dflc);
@@ -323,13 +322,10 @@ void lpRgpu::applyFilter()
 	for(int ij = 0;ij<Nslices;ij++)
 	{
 		cudaMemset(dRc, 0, 2*Nproj*N*osfilter*sizeof(float));
-		//transpose data
-		GS21 = ceil(Nproj/(float)MBS21);GS22 = ceil(N/(float)MBS22);dim3 dimGrid(GS21,GS22);
-		transpose<<<dimGrid, dimBlock>>>(dRt, &dR[Nproj*N*ij], Nproj, N,1);
 		
 		//copy to complex array
 		GS21 = ceil(N/(float)MBS21);GS22 = ceil(Nproj/(float)MBS22);dim3 dimGrid1(GS21,GS22);	
-		copyc<<<dimGrid1, dimBlock>>>(dRt,dRc,N,Nproj,osfilter);
+		copyc<<<dimGrid1, dimBlock>>>(&dR[N*Nproj*ij],dRc,N,Nproj,osfilter);
 
 		//fftshift 
 		GS21 = ceil(N*osfilter/(float)MBS21);GS22 = ceil(Nproj/(float)MBS22);dim3 dimGrid2(GS21,GS22);
@@ -358,16 +354,12 @@ void lpRgpu::applyFilter()
 		fftshift<<<dimGrid6, dimBlock>>>(dRc,N*osfilter,Nproj);
 
 		//copy from complex array
-		GS21 = ceil(N*osfilter/(float)MBS21);GS22 = ceil(Nproj/(float)MBS22);dim3 dimGrid7(GS21,GS22);	
-		copycback<<<dimGrid7, dimBlock>>>(dRt,dRc,N,Nproj,osfilter);
-
-		//tranpose back
-		GS21 = ceil(N/(float)MBS21);GS22 = ceil(Nproj/(float)MBS22);dim3 dimGrid8(GS21,GS22);
-		transpose<<<dimGrid8, dimBlock>>>(&dR[Nproj*N*ij], dRt, N,Nproj,1);
+		GS21 = ceil(N/(float)MBS21);GS22 = ceil(Nproj/(float)MBS22);dim3 dimGrid7(GS21,GS22);	
+		copycback<<<dimGrid7, dimBlock>>>(&dR[N*Nproj*ij],dRc,N,Nproj,osfilter);
 
 		//mul const
-		GS21 = ceil(Nproj/(float)MBS21);GS22 = ceil(N/(float)MBS22);dim3 dimGrid9(GS21,GS22);
-		mulconst<<<dimGrid9, dimBlock>>>(&dR[Nproj*N*ij],1/(float)(osfilter*N), Nproj, N);
+		GS21 = ceil(N/(float)MBS21);GS22 = ceil(Nproj/(float)MBS22);dim3 dimGrid9(GS21,GS22);
+		mulconst<<<dimGrid9, dimBlock>>>(&dR[Nproj*N*ij],1/(float)(osfilter*N), N, Nproj);
 	}
 }
 

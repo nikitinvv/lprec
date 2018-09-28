@@ -55,7 +55,7 @@ class lpRgpu{
 	//filter
     float* filter;
 	float* dfilter;
-	float* dRt;float2* dRc;
+	float2* dRc;
 	
 public:
 %apply (float* INPLACE_ARRAY1, int DIM1) {(float* params, int Nparams)};
@@ -89,16 +89,16 @@ public:
 	void execFwd();
 	void execAdj();
 
-%apply (float* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* R, int Nslices2_,int Ns_, int Nproj_)};
+%apply (float* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* R, int Nslices2_,int Nproj_, int N_)};
 %apply (float* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* f, int Nslices1_, int N2_, int N1_)};
-	void execFwdMany(float* R, int Nslices2_, int Ns_, int Nproj_, float* f, int Nslices1_, int N2_, int N1_);
-%clear (float* R, int Nslices2_,int Ns_, int Nproj_);
+	void execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_);
+%clear (float* R, int Nslices2_,int Nproj_, int N_);
 %clear (float* f, int Nslices1_, int N2_, int N1_);
 
-%apply (float* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* R, int Nslices2_,int Ns_, int Nproj_)};
+%apply (float* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* R, int Nslices2_,int Nproj_, int N_)};
 %apply (float* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* f, int Nslices1_, int N2_, int N1_)};
-	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Ns_, int Nproj_);
-%clear (float* R, int Nslices2_,int Ns_, int Nproj_);
+	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_);
+%clear (float* R, int Nslices2_,int Nproj_, int N_);
 %clear (float* f, int Nslices1_, int N2_, int N1_);
 
 	void applyFilter();

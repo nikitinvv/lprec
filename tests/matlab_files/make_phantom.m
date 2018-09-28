@@ -10,6 +10,6 @@ fid=fopen('./data/f','wb');
 fwrite(fid,ff,'single');
 fclose(fid);
 fid=fopen('./data/R','wb');
-fwrite(fid,h,'single');
+fwrite(fid,h','single');
 fclose(fid);
 exit

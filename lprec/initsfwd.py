@@ -21,13 +21,14 @@ def create_fwd(P):
 	for k in range(0,P.Nspan):
 		lp2C1[k] = ndarray.flatten(array((texprho*cos(P.thsp)-(1-P.aR))*cos((k)*P.beta+P.beta/2)-texprho*sin(P.thsp)*sin((k)*P.beta+P.beta/2))/P.aR)
 		lp2C2[k] = ndarray.flatten(array((texprho*cos(P.thsp)-(1-P.aR))*sin((k)*P.beta+P.beta/2)+texprho*sin(P.thsp)*cos((k)*P.beta+P.beta/2))/P.aR)
+		lp2C2[k] = lp2C2[k]*(-1) #adjust for Tomopy 
 		cids = where((lp2C1[k]**2+lp2C2[k]**2)<=1)
 		lp2C1[k] = lp2C1[k][cids]
 		lp2C2[k] = lp2C2[k][cids]
 
 	#pids, index in polar grids after splitting by spans
 	pids = [None]*P.Nspan
-	[th0,s0] = meshgrid(P.proj,P.s)
+	[s0,th0] = meshgrid(P.s,P.proj)
 	th0 = ndarray.flatten(th0)
 	s0 = ndarray.flatten(s0)
 	for k in range(0,P.Nspan):

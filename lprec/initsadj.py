@@ -22,6 +22,7 @@ def create_adj(P,filter_type):
 	[x1,x2] = meshgrid(linspace(-1,1,P.N),linspace(-1,1,P.N)) 
 	x1 = ndarray.flatten(x1) 
 	x2 = ndarray.flatten(x2)
+	x2 = x2*(-1) #adjust for tomopy
 	cids = where(x1**2+x2**2<=1)
 	C2lp1 = [None]*P.Nspan 
 	C2lp2 = [None]*P.Nspan

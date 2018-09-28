@@ -106,7 +106,7 @@ __global__ void padker(float* R, int lb, int rb, int N1, int N2, int N3)
         uint tz = blockIdx.z*blockDim.z + threadIdx.z;
 
         if (tx>=N1||ty>=N2||tz>=N3) return;
-        if (ty<lb) R[tz*N1*N2+ty*N1+tx]=R[tz*N1*N2+lb*N1+tx];
-        if (ty>rb) R[tz*N1*N2+ty*N1+tx]=R[tz*N1*N2+rb*N1+tx];
+        if (tx<lb) R[tz*N1*N2+ty*N1+tx]=R[tz*N1*N2+ty*N1+lb];
+        if (tx>rb) R[tz*N1*N2+ty*N1+tx]=R[tz*N1*N2+ty*N1+rb];
 }
 

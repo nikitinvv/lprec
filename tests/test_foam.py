@@ -1,36 +1,25 @@
-from lprecmods import lpTransform
-from lprecmods.timing import *
+from lprec import lpTransform
 import matplotlib.pyplot as plt
 import numpy as np
 import struct
 
 N = 2016
 Nproj = 299
-Nslices = 4
+Nslices = 1
 filter_type = 'hamming'
-pad = True
 cor = N/2
+interp_type = 'cubic'
 
 fid = open('./data/Rfoam', 'rb')
 R = np.float32(np.reshape(struct.unpack(
 	Nproj*N*'f', fid.read(Nproj*N*4)), [1, N, Nproj]))
-Ra = np.float32(np.zeros([Nslices, N, Nproj]))
+R = R.swapaxes(1,2)
 
-for k in range(0, Nslices):
-	Ra[k, :, :] = R[0, :, :]
+clpthandle = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
+clpthandle.precompute(0)
+clpthandle.initcmem(0)
 
-clpthandle = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, pad)
-clpthandle.precompute()
-clpthandle.initcmem()
-
-for k in range(0, 3):
-	tic()
-	frec = clpthandle.adj(Ra, cor)
-	toc()
-
-fid = open('frec2', 'wb')
-frec[1, :, :].tofile(fid)
-fid.close()
+frec = clpthandle.adj(R)
 
 plt.subplot(1, 2, 1)
 plt.imshow(R[0, :, :])

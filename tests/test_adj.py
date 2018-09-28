@@ -1,4 +1,4 @@
-from lprecmods import lpTransform
+from lprec import lpTransform
 import matplotlib.pyplot as plt
 import numpy as np
 import struct
@@ -7,22 +7,22 @@ N = 512
 Nproj = 3*N/2
 Nslices = 1
 filter_type = 'None'
-pad = False
 cor = N/2
+interp_type = 'cubic'
 
 fid = open('./data/f', 'rb')
 f = np.float32(np.reshape(struct.unpack(N*N*'f', fid.read(N*N*4)), [Nslices, N, N]))
 
 fid = open('./data/R', 'rb')
 R = np.float32(np.reshape(struct.unpack(
-    Nproj*N*'f', fid.read(Nproj*N*4)), [Nslices, N, Nproj]))
+    Nproj*N*'f', fid.read(Nproj*N*4)), [Nslices, Nproj, N]))
 
-clpthandle = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, pad)
-clpthandle.precompute()
-clpthandle.initcmem()
+clpthandle = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
+clpthandle.precompute(1)
+clpthandle.initcmem(1)
 
 Rf = clpthandle.fwd(f)
-frec = clpthandle.adj(R, cor)
+frec = clpthandle.adj(R)
 Rrec = clpthandle.fwd(frec)
 
 
