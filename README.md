@@ -18,7 +18,7 @@ ang = tomopy.angles(180) # Generate uniformly spaced tilt angles.
 sim = tomopy.project(obj, ang) # Calculate projections.
 
 rec = tomopy.recon(sim, ang, algorithm=tomopy.lprec,
-      lpmethod='fbp', filter_name='parzen', interp_type='cubic', ncore=1)
+      lpmethod='lpfbp', filter_name='parzen', interp_type='cubic', ncore=1)
 
 import pylab
 
