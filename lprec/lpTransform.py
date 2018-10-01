@@ -1,7 +1,7 @@
-import initsgl 
-import initsfwd 
-import initsadj 
-import lpRgpu
+import lprec.initsgl as initsgl
+import lprec.initsfwd as initsfwd
+import lprec.initsadj as initsadj
+import lprec.lpRgpu as lpRgpu
 import numpy as np
 
 class lpTransform:
@@ -15,7 +15,7 @@ class lpTransform:
 		self.osangles = int(max(round(3.0*N/2.0/Nproj),1))
 		self.Nproj = self.osangles*Nproj
 		#size after zero padding in radial direction
-		self.Npad = N+abs(N/2-cor)*2
+		self.Npad = np.int(N+abs(N/2-cor)*2)
 
 	def precompute(self,flg):		
 		#precompute parameters for the lp method

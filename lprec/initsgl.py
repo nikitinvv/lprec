@@ -1,5 +1,5 @@
 from numpy import * 
-from lpRgpu import lpRgpu
+from lprec.lpRgpu import lpRgpu
 
 class Pgl:
 	def __init__(self,Nspan,N,Nproj,Nslices,Ntheta,Nrho,proj,s,thsp,rhosp,aR,beta,B3com,am,g,cor,interp_type):

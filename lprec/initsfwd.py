@@ -51,9 +51,9 @@ def create_fwd(P):
 		p2lp2[k] = (p2lp2[k]-P.rhosp[0])/(P.rhosp[-1]-P.rhosp[0])*(P.Nrho-1)
 
 	const = P.N*pi/P.Nproj/4/P.aR
-	fZgpu = fZ[:,arange(0,P.Ntheta/2+1)]*const
+	fZgpu = fZ[:,arange(0,int(P.Ntheta/2)+1)]*const
 	if(P.interp_type=='cubic'):
-		fZgpu = fZgpu/(P.B3com[:,arange(0,P.Ntheta/2+1)])
+		fZgpu = fZgpu/(P.B3com[:,arange(0,int(P.Ntheta/2)+1)])
 
 	Pfwd0 = Pfwd(fZgpu,lp2C1,lp2C2,p2lp1,p2lp2,cids,pids)
 	#array representation
@@ -64,7 +64,7 @@ def fzeta_loop_weights(Ntheta,Nrho,betas,rhos,a,osthlarge):
 	krho = arange(-Nrho/2,Nrho/2)
 	Nthetalarge = osthlarge*Ntheta
 	thsplarge = arange(-Nthetalarge/2,Nthetalarge/2)/float32(Nthetalarge)*betas
-	fZ = array(zeros(shape = (Nrho,Nthetalarge)),dtype = complex)
+	fZ = array(zeros(shape=(Nrho,Nthetalarge)),dtype = complex)
 	h = array(ones(Nthetalarge))
 	# correcting = 1+[-3 4 -1]/24correcting(1) = 2*(correcting(1)-0.5)
 	#correcting = 1+array([-23681,55688,-66109,57024,-31523,9976,-1375])/120960.0correcting[0] = 2*(correcting[0]-0.5)
@@ -77,7 +77,7 @@ def fzeta_loop_weights(Ntheta,Nrho,betas,rhos,a,osthlarge):
 	for j in range(0,size(krho)):
 		fcosa = pow(cos(thsplarge),(-2*pi*1j*krho[j]/rhos-1-a))
 		fZ[j,:] = fft.fftshift(fft.fft(fft.fftshift(h*fcosa)))
-	fZ = fZ[:,range(Nthetalarge/2-Ntheta/2,Nthetalarge/2+Ntheta/2)]
+	fZ = fZ[:,range(int(Nthetalarge/2-Ntheta/2),int(Nthetalarge/2+Ntheta/2))]
 	fZ = fZ*(thsplarge[1]-thsplarge[0])
 	#put imag to 0 for the border
 	fZ[0] = 0

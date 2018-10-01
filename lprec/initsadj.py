@@ -89,9 +89,9 @@ def create_adj(P,filter_type):
 		C2lp2[k] = (C2lp2[k]-P.rhosp[0])/(P.rhosp[-1]-P.rhosp[0])*(P.Nrho-1)
 	
 	const = (P.N+1)/float32(P.N)*(P.N-1)/2/P.N
-	fZgpu = fZ[:,arange(0,P.Ntheta/2+1)]*const
+	fZgpu = fZ[:,arange(0,int(P.Ntheta/2)+1)]*const
 	if(P.interp_type=='cubic'):
-		fZgpu = fZgpu/(P.B3com[:,arange(0,P.Ntheta/2+1)])
+		fZgpu = fZgpu/(P.B3com[:,arange(0,int(P.Ntheta/2)+1)])
 
 	#filter
 	if (filter_type!= 'None'):
@@ -120,7 +120,7 @@ def fzeta_loop_weights_adj(Ntheta,Nrho,betas,rhos,a,osthlarge):
 	for j in range(0,size(krho)):
 		fcosa = pow(cos(thsplarge),(2*pi*1j*krho[j]/rhos-a))
 		fZ[j,:] = fft.fftshift(fft.fft(fft.fftshift(h*fcosa)))
-	fZ = fZ[:,range(Nthetalarge/2-Ntheta/2,Nthetalarge/2+Ntheta/2)]
+	fZ = fZ[:,range(int(Nthetalarge/2-Ntheta/2),int(Nthetalarge/2+Ntheta/2))]
 	fZ = fZ*(thsplarge[1]-thsplarge[0])
 	#put imag to 0 for the border
 	fZ[0] = 0

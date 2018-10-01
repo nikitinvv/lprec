@@ -6,10 +6,10 @@ ff=apply_filter_2d_exact(f,filter_kind,ellipse);ff=single(ff');
 %filtered Radon data
 h=apply_filter_exact(Ntheta,Ns,filter_kind,ellipse);h=single(h);
 
-fid=fopen('./data/f','wb');
-fwrite(fid,ff,'single');
+fid=fopen('../data/f','wb');
+fwrite(fid,flipud(ff),'single');
 fclose(fid);
-fid=fopen('./data/R','wb');
-fwrite(fid,h','single');
+fid=fopen('../data/R','wb');
+fwrite(fid,flipud(h')*2*N,'single');
 fclose(fid);
-exit
+% exit
