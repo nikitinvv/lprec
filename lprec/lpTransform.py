@@ -21,21 +21,32 @@ class lpTransform:
 		Padj,self.adjparsi,self.adjparamsf = initsadj.create_adj(Pgl,self.filter_type)
 	
 	def initcmem(self,flg):
-		#init memory in C, read data from files
+		#init memory in C (could be used by several gpus)
 		self.clphandle = lpRgpu.lpRgpu(self.glpars)
 		if(flg):
 			self.clphandle.initFwd(self.fwdparsi,self.fwdparamsf)
 		self.clphandle.initAdj(self.adjparsi,self.adjparamsf)	
 
 	def fwd(self,f):
+		# Forward projection operator
 		R = np.zeros([f.shape[0],self.Nproj,self.N],dtype = 'float32')
 		self.clphandle.execFwdMany(R,f)
 		return R
-
+	
 	def adj(self,R):
+		# Adjoint projection operator
 		f = np.zeros([R.shape[0],self.N,self.N],dtype = 'float32')
 		self.clphandle.execAdjMany(f,R)
 		return f
+
+	def fwdp(self,Rptr,fptr):
+		# Forward projection operator. Work with GPU pointers
+		self.clphandle.execFwdManyPtr(Rptr,fptr)
+
+	def adjp(self,fptr,Rptr):
+		# Forward projection operator. Work with GPU pointers
+		self.clphandle.execAdjManyPtr(fptr,Rptr)
+		 
 
 
 	

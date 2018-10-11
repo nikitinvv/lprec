@@ -183,10 +183,10 @@ void lpRgpu::execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, 
 {
 	cudaMemset(df,0,N*N*Nslices*sizeof(float));
 	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
-	copy3Dshifted(df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),make_cudaExtent(N1_,N2_,Nslices1_));
+	copy3Dshifted(df,N/2-N0/2,N/2-N0/2,make_cudaExtent(N,N,Nslices),f,0,0,make_cudaExtent(N0, N0, Nslices),make_cudaExtent(N0,N0,Nslices));
 	execFwd();
 	copy3Dstep(dtmpR, dR, osangles, N, Nproj, Nslices, 0);
-    copy3Dshifted(R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),make_cudaExtent(N_,Nproj_,Nslices2_));
+    copy3Dshifted(R,0,0,make_cudaExtent(N0,Nproj/osangles,Nslices),dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),make_cudaExtent(N0,Nproj/osangles,Nslices));
 }
 
 //compute back-projection for several slices
@@ -194,13 +194,38 @@ void lpRgpu::execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, in
 {
 	cudaMemset(dR,0,Nproj*N*Nslices*sizeof(float));
 	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
-	copy3Dshifted(dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),make_cudaExtent(N_,Nproj_,Nslices2_));
+	copy3Dshifted(dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),R,0,0,make_cudaExtent(N0,Nproj/osangles,Nslices),make_cudaExtent(N0,Nproj/osangles,Nslices));
 	copy3Dstep(dR, dtmpR, osangles, N, Nproj, Nslices, 1);
-	padding(N_);
+	padding(N0);
 	applyFilter();
 	execAdj();
-    copy3Dshifted(f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N1_,N2_,Nslices1_));
+    copy3Dshifted(f,0,0,make_cudaExtent(N0, N0, Nslices),df,N/2-N0/2,N/2-N0/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N0,N0,Nslices));
 }
+
+void lpRgpu::execFwdManyPtr(size_t Rptr, size_t fptr)
+{
+	cudaMemset(df,0,N*N*Nslices*sizeof(float));
+	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
+	copy3Dshifted(df,N/2-N0/2,N/2-N0/2,make_cudaExtent(N,N,Nslices),(float*)fptr,0,0,make_cudaExtent(N0, N0, Nslices),make_cudaExtent(N0,N0,Nslices));
+	execFwd();
+	copy3Dstep(dtmpR, dR, osangles, N, Nproj, Nslices, 0);
+    copy3Dshifted((float*)Rptr,0,0,make_cudaExtent(N0,Nproj/osangles,Nslices),dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),make_cudaExtent(N0,Nproj/osangles,Nslices));
+}
+
+//compute back-projection for several slices
+void lpRgpu::execAdjManyPtr(size_t fptr, size_t Rptr)
+{
+	cudaMemset(dR,0,Nproj*N*Nslices*sizeof(float));
+	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
+	copy3Dshifted(dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),(float*)Rptr,0,0,make_cudaExtent(N0,Nproj/osangles,Nslices),make_cudaExtent(N0,Nproj/osangles,Nslices));
+	copy3Dstep(dR, dtmpR, osangles, N, Nproj, Nslices, 1);
+	padding(N0);
+	applyFilter();
+	execAdj();
+    copy3Dshifted((float*)fptr,0,0,make_cudaExtent(N0, N0, Nslices),df,N/2-N0/2,N/2-N0/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N0,N0,Nslices));
+}
+
+
 //padding
 void lpRgpu::padding(int N_)
 {

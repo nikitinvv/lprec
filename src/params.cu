@@ -40,16 +40,17 @@ void lpRgpu::printAdjParameters()
 void lpRgpu::readGlobalParametersArr(float* params)
 {
 	N = (int)params[0];
-	Ntheta = (int)params[1];
-	Nrho = (int)params[2];
-	Nspan = (int)params[3];
-	Nproj = (int)params[4];
-	Nslices = (int)params[5];
-	cor = (int)params[6];
-	osangles = (int)params[7];
-	interp_type = (int)params[8];
+	N0 = (int)params[1];
+	Ntheta = (int)params[2];
+	Nrho = (int)params[3];
+	Nspan = (int)params[4];
+	Nproj = (int)params[5];
+	Nslices = (int)params[6];
+	cor = (int)params[7];
+	osangles = (int)params[8];
+	interp_type = (int)params[9];
 	erho = new float[Nrho*Ntheta];
-	memcpy(erho,&params[9],Nrho*Ntheta*sizeof(float));
+	memcpy(erho,&params[10],Nrho*Ntheta*sizeof(float));
 	Ntheta_R2C=(int)(Ntheta/2.0)+1;
 }
 

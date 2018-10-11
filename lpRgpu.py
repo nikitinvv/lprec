@@ -96,7 +96,6 @@ class lpRgpu(_object):
     def execFwdMany(self, *args): return _lpRgpu.lpRgpu_execFwdMany(self, *args)
     def execAdjMany(self, *args): return _lpRgpu.lpRgpu_execAdjMany(self, *args)
     def execFwdManyPtr(self, *args): return _lpRgpu.lpRgpu_execFwdManyPtr(self, *args)
-    def execAdjManyPtr(self, *args): return _lpRgpu.lpRgpu_execAdjManyPtr(self, *args)
     def applyFilter(self): return _lpRgpu.lpRgpu_applyFilter(self)
     def padding(self, *args): return _lpRgpu.lpRgpu_padding(self, *args)
 lpRgpu_swigregister = _lpRgpu.lpRgpu_swigregister

@@ -15,6 +15,7 @@ import_array();
 
 class lpRgpu{
 	//global parameters
+	int N0;
 	int N;
 	int Nspan;
 	int Ntheta;int Nrho;
@@ -101,6 +102,8 @@ public:
 	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_);
 %clear (float* R, int Nslices2_,int Nproj_, int N_);
 %clear (float* f, int Nslices1_, int N2_, int N1_);
+	void execFwdManyPtr(size_t Rptr, size_t fptr);
+	void execAdjManyPtr(size_t fptr, size_t Rptr);
 
 	void applyFilter();
 	void padding(int N_);

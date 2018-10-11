@@ -2,9 +2,10 @@ from numpy import *
 from lprec.lpRgpu import lpRgpu
 
 class Pgl:
-	def __init__(self,Nspan,N,Nproj,Nslices,Ntheta,Nrho,proj,s,thsp,rhosp,aR,beta,B3com,am,g,cor,osangles,interp_type):
+	def __init__(self,Nspan,N,N0,Nproj,Nslices,Ntheta,Nrho,proj,s,thsp,rhosp,aR,beta,B3com,am,g,cor,osangles,interp_type):
 		self.Nspan = Nspan
 		self.N = N
+		self.N0 = N0
 		self.Nproj = Nproj
 		self.Nslices = Nslices	
 		self.Ntheta = Ntheta
@@ -22,12 +23,12 @@ class Pgl:
 		self.osangles = osangles
 		self.interp_type = interp_type
 
-def create_gl(N,Nproj,Nslices,cor,interp_type):
+def create_gl(N0,Nproj,Nslices,cor,interp_type):
 	Nspan = 3
 	beta = pi/Nspan
 
 	#size after zero padding in radial direction
-	N = int(N+abs(N/2-cor)*2)
+	N = int(N0+abs(N0/2-cor)*2)
 	#size after zero padding in the angle direction (for nondense sampling rate)
 	osangles = int(max(round(3.0*N/2.0/Nproj),1))
 	Nproj = osangles*Nproj
@@ -52,10 +53,10 @@ def create_gl(N,Nproj,Nslices,cor,interp_type):
 	B3com = array(transpose(matrix(B3rho))*B3th)
 
 	#struct with global parameters
-	P = Pgl(Nspan,N,Nproj,Nslices,Ntheta,Nrho,proj,s,thsp,rhosp,aR,beta,B3com,am,g,cor,osangles,interp_type)
+	P = Pgl(Nspan,N,N0,Nproj,Nslices,Ntheta,Nrho,proj,s,thsp,rhosp,aR,beta,B3com,am,g,cor,osangles,interp_type)
 
 	#represent as array
-	params = float32(append([P.N,P.Ntheta,P.Nrho,P.Nspan,P.Nproj,P.Nslices,P.cor,P.osangles,P.interp_type=='cubic'],erho))
+	params = float32(append([P.N,P.N0,P.Ntheta,P.Nrho,P.Nspan,P.Nproj,P.Nslices,P.cor,P.osangles,P.interp_type=='cubic'],erho))
 	return (P,params)
 
 def getparameters(beta,dtheta,ds,N,Nproj):
