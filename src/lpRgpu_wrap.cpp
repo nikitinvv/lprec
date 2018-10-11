@@ -4502,18 +4502,14 @@ SWIGINTERN PyObject *_wrap_lpRgpu_padding(PyObject *SWIGUNUSEDPARM(self), PyObje
   PyObject *resultobj = 0;
   lpRgpu *arg1 = (lpRgpu *) 0 ;
   int arg2 ;
-  int arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
   int ecode2 = 0 ;
-  int val3 ;
-  int ecode3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:lpRgpu_padding",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:lpRgpu_padding",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_lpRgpu, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "lpRgpu_padding" "', argument " "1"" of type '" "lpRgpu *""'"); 
@@ -4524,12 +4520,7 @@ SWIGINTERN PyObject *_wrap_lpRgpu_padding(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "lpRgpu_padding" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  ecode3 = SWIG_AsVal_int(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "lpRgpu_padding" "', argument " "3"" of type '" "int""'");
-  } 
-  arg3 = static_cast< int >(val3);
-  (arg1)->padding(arg2,arg3);
+  (arg1)->padding(arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:

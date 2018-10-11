@@ -10,7 +10,7 @@ filter_type = 'hamming'
 cor = N/2
 interp_type = 'cubic'
 
-fid = open('./data/Rfoam', 'rb')
+fid = open('tests/data/Rfoam', 'rb')
 R = np.float32(np.reshape(struct.unpack(
 	Nproj*N*'f', fid.read(Nproj*N*4)), [1, N, Nproj]))
 R = R.swapaxes(1,2)

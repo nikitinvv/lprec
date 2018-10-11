@@ -23,6 +23,7 @@ class lpRgpu{
 	int Ntheta_cut;
 	int Ntheta_R2C;
 	int cor;
+	int osangles;
 	float* erho;
 
 	//grids storages
@@ -102,5 +103,5 @@ public:
 %clear (float* f, int Nslices1_, int N2_, int N1_);
 
 	void applyFilter();
-	void padding(int Ns_, int shift);
+	void padding(int N_);
 };

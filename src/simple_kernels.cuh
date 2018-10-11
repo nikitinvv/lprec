@@ -110,3 +110,13 @@ __global__ void padker(float* R, int lb, int rb, int N1, int N2, int N3)
         if (tx>rb) R[tz*N1*N2+ty*N1+tx]=R[tz*N1*N2+ty*N1+rb];
 }
 
+__global__ void stepangles(float* dst, float* src, int stepdsty, int stepsrcy, int N1, int N2, int N3)
+{
+        uint tx = blockIdx.x*blockDim.x + threadIdx.x;
+        uint ty = blockIdx.y*blockDim.y + threadIdx.y;
+        uint tz = blockIdx.z*blockDim.z + threadIdx.z;
+
+        if (tx>=N1||ty>=N2||tz>=N3) return;
+        dst[tz*N1*N2*stepdsty+ty*N1*stepdsty+tx]=src[tz*N1*N2*stepsrcy+ty*N1*stepsrcy+tx];
+}
+

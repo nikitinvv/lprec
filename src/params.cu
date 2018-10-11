@@ -46,9 +46,10 @@ void lpRgpu::readGlobalParametersArr(float* params)
 	Nproj = (int)params[4];
 	Nslices = (int)params[5];
 	cor = (int)params[6];
-	interp_type = (int)params[7];
+	osangles = (int)params[7];
+	interp_type = (int)params[8];
 	erho = new float[Nrho*Ntheta];
-	memcpy(erho,&params[8],Nrho*Ntheta*sizeof(float));
+	memcpy(erho,&params[9],Nrho*Ntheta*sizeof(float));
 	Ntheta_R2C=(int)(Ntheta/2.0)+1;
 }
 

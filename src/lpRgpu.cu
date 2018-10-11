@@ -12,7 +12,7 @@ lpRgpu::lpRgpu(float* params, int Nparams)
 	err = cudaMalloc((void **)&dflc, Nslices*Ntheta_R2C*Nrho*sizeof(float2)); if (err!=0) callErr(cudaGetErrorString(err));
 
 	//init rho space
-	err = cudaMemcpy(derho,erho,Ntheta*Nrho*sizeof(float),cudaMemcpyHostToDevice); if (err!=0) callErr(cudaGetErrorString(err));
+	cudaMemcpy(derho,erho,Ntheta*Nrho*sizeof(float),cudaMemcpyHostToDevice);
 
 	cudaChannelFormatDesc texf_desc = cudaCreateChannelDesc<float>();	
 	cudaExtent volumeSize = make_cudaExtent(Ntheta,Nrho,Nslices); 
@@ -66,7 +66,7 @@ void lpRgpu::initFwd(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf)
 	err = cudaMalloc((void **)&dtmpf, Nslices*N*N*sizeof(float)); if (err!=0) callErr(cudaGetErrorString(err));//delete to do
 
 	//copy Fourier transform of Z	
-	err = cudaMemcpy(dfZfwd,fZfwd,Ntheta_R2C*Nrho*sizeof(float2),cudaMemcpyHostToDevice); if (err!=0) callErr(cudaGetErrorString(err));
+	cudaMemcpy(dfZfwd,fZfwd,Ntheta_R2C*Nrho*sizeof(float2),cudaMemcpyHostToDevice);
 
 	cudaChannelFormatDesc texf_desc = cudaCreateChannelDesc<float>();
 	cudaExtent volumeSize = make_cudaExtent(N,N,Nslices); 
@@ -121,8 +121,7 @@ void lpRgpu::initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf)
 	{
 		int osfilter = 4;
 		err = cudaMalloc((void **)&dfilter, N*osfilter*sizeof(float)); if (err!=0) callErr(cudaGetErrorString(err));
-		err = cudaMemcpy(dfilter, filter,N*osfilter*sizeof(float),cudaMemcpyDefault); if (err!=0) callErr(cudaGetErrorString(err));
-	
+		cudaMemcpy(dfilter, filter,N*osfilter*sizeof(float),cudaMemcpyDefault); 	
 		cufftPlan1d(&plan_f_forward,N*osfilter,CUFFT_C2C,Nproj);
 		cufftPlan1d(&plan_f_inverse,N*osfilter,CUFFT_C2C,Nproj);
 		err = cudaMalloc((void **)&dRc, Nproj*N*osfilter*sizeof(float2)); if (err!=0) callErr(cudaGetErrorString(err));
@@ -168,33 +167,46 @@ cudaError_t copy3Dshifted(float *dst, int dstx,int dsty, cudaExtent dstext, floa
 	return cudaMemcpy3D(&param);
 }
 
+void copy3Dstep(float *dst, float* src, int stepy,int N, int Nproj, int Nslices, bool flg)
+{
+	uint GS31 = (uint)ceil(N/(float)MBS21);uint GS32 = (uint)ceil(Nproj/stepy/(float)MBS22);uint GS33 = (uint)ceil(Nslices/(float)MBS33);
+	dim3 dimBlock(MBS31,MBS32,MBS33);dim3 dimGrid(GS31,GS32,GS33);
+	if(flg)
+		stepangles<<<dimGrid,dimBlock>>>(dst,src,stepy,1,N,Nproj/stepy,Nslices);	
+	else
+		stepangles<<<dimGrid,dimBlock>>>(dst,src,1,stepy,N,Nproj/stepy,Nslices);	
+}
+
 
 //compute Radon transform for several slices
 void lpRgpu::execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_)
 {
 	cudaMemset(df,0,N*N*Nslices*sizeof(float));
-	err = copy3Dshifted(df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),make_cudaExtent(N1_,N2_,Nslices1_)); if(err!=0) callErr(cudaGetErrorString(err));  	    execFwd();
-	int shift = N_/2-cor;
-    err = copy3Dshifted(R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),dR,N/2-N_/2+shift,0,make_cudaExtent(N, Nproj, Nslices),make_cudaExtent(N_,Nproj_,Nslices2_)); if(err!=0) callErr(cudaGetErrorString(err));
+	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
+	copy3Dshifted(df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),make_cudaExtent(N1_,N2_,Nslices1_));
+	execFwd();
+	copy3Dstep(dtmpR, dR, osangles, N, Nproj, Nslices, 0);
+    copy3Dshifted(R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),make_cudaExtent(N_,Nproj_,Nslices2_));
 }
 
 //compute back-projection for several slices
 void lpRgpu::execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_)
 {
 	cudaMemset(dR,0,Nproj*N*Nslices*sizeof(float));
-	int shift = N_/2-cor;
-    err = copy3Dshifted(dR,N/2-N_/2+shift,0,make_cudaExtent(N, Nproj, Nslices),R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),make_cudaExtent(N_,Nproj_,Nslices2_)); if(err!=0) callErr(cudaGetErrorString(err));   	   
-	padding(N_,shift);
+	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
+	copy3Dshifted(dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),R,0,0,make_cudaExtent(N_,Nproj_,Nslices2_),make_cudaExtent(N_,Nproj_,Nslices2_));
+	copy3Dstep(dR, dtmpR, osangles, N, Nproj, Nslices, 1);
+	padding(N_);
 	applyFilter();
 	execAdj();
-    err = copy3Dshifted(f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N1_,N2_,Nslices1_)); if(err!=0) callErr(cudaGetErrorString(err));  }
-
+    copy3Dshifted(f,0,0,make_cudaExtent(N1_, N2_, Nslices1_),df,N/2-N1_/2,N/2-N2_/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N1_,N2_,Nslices1_));
+}
 //padding
-void lpRgpu::padding(int N_, int shift)
+void lpRgpu::padding(int N_)
 {
 	uint GS31 = (uint)ceil(N/(float)MBS21);uint GS32 = (uint)ceil(Nproj/(float)MBS22);uint GS33 = (uint)ceil(Nslices/(float)MBS33);
-       dim3 dimBlock(MBS31,MBS32,MBS33);dim3 dimGrid(GS31,GS32,GS33);
-        padker<<<dimGrid,dimBlock>>>(dR,N/2-N_/2+shift,N/2+N_/2+shift-1,N,Nproj,Nslices);
+    dim3 dimBlock(MBS31,MBS32,MBS33);dim3 dimGrid(GS31,GS32,GS33);
+    padker<<<dimGrid,dimBlock>>>(dR,N/2-cor,N/2+N_-cor-1,N,Nproj,Nslices);
 }
 
 //prefilter to compensate amplitudes in cubic interpolation

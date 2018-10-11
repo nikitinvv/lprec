@@ -12,6 +12,7 @@ class lpRgpu{
 	int Nslices;
 	int Ntheta_R2C;
 	int cor;
+	int osangles;
 	float* erho;
 
 	//grids storages
@@ -70,5 +71,5 @@ public:
 	void execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_);
 	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_);
 	void applyFilter();
-	void padding(int Ns_, int shift);
+	void padding(int N_);
 };
