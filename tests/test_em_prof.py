@@ -5,7 +5,7 @@ import pycuda.gpuarray as gpuarray
 import pycuda.autoinit
 from timing import tic,toc
 
-@profile
+#@profile
 def main():
     N = 1024
     Nproj = np.int(3*N/2)
@@ -62,9 +62,9 @@ def main():
     tic()
     for i in range(0, num_iter):
         lp.fwdp(g,recon)
-        pycuda.driver.Context.synchronize() # the previous cuda call is asynchronous (use this for profiling)
+        #pycuda.driver.Context.synchronize() # the previous cuda call is asynchronous (use this for profiling)
         lp.adjp(upd,tomo/(g+e))
-        pycuda.driver.Context.synchronize() # the previous cuda call is asynchronous
+        #pycuda.driver.Context.synchronize() # the previous cuda call is asynchronous
         recon = recon*(upd/xi)
     print("  Approach 2 (work with gpu pointers)")
     toc()
