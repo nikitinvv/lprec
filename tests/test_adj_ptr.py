@@ -5,10 +5,10 @@ import pycuda.gpuarray as gpuarray
 import pycuda.autoinit
 
 N = 512
-Nproj = np.int(3*N/2)
+Nproj = np.int(N/2)
 Nslices = 1
 filter_type = 'None'
-cor = N/2
+cor = N/2+10
 interp_type = 'cubic'
 
 #init random arrays
@@ -23,6 +23,10 @@ Rg = gpuarray.to_gpu(R)
 Rfg = gpuarray.GPUArray([Nslices,Nproj,N],dtype="float32")
 fRg = gpuarray.GPUArray([Nslices,N,N],dtype="float32")
 
+# allocate cpu memory for results
+Rfc = np.zeros([Nslices,Nproj,N],dtype="float32")
+fRc = np.zeros([Nslices,N,N],dtype="float32")
+
 # class lprec
 clpthandle = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
 clpthandle.precompute(1)
@@ -36,11 +40,17 @@ fR = clpthandle.adj(R)
 clpthandle.fwdp(Rfg.ptr,fg.ptr)
 clpthandle.adjp(fRg.ptr,Rg.ptr)
 
+# compute with cpu pointers
+clpthandle.fwdp(Rfc.__array_interface__['data'][0],f.__array_interface__['data'][0])
+clpthandle.adjp(fRc.__array_interface__['data'][0],R.__array_interface__['data'][0])
 
 #check the result
-print("Differences for two approaches")
+print("Differences for three approaches")
 print(np.linalg.norm(Rfg.get()-Rf))
 print(np.linalg.norm(fRg.get()-fR))
+print(np.linalg.norm(Rfc-Rf))
+print(np.linalg.norm(fRc-fR))
+
 
 print("Adjoint test (should be < 0.01)")
 #self adjoint test
