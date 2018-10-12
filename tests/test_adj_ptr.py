@@ -5,10 +5,10 @@ import pycuda.gpuarray as gpuarray
 import pycuda.autoinit
 
 N = 512
-Nproj = np.int(N/2)
+Nproj = np.int(3*N/2)
 Nslices = 1
 filter_type = 'None'
-cor = N/2+10
+cor = N/2
 interp_type = 'cubic'
 
 #init random arrays
