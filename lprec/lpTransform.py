@@ -39,13 +39,13 @@ class lpTransform:
 		self.clphandle.execAdjMany(f,R)
 		return f
 
-	def fwdp(self,Rptr,fptr):
+	def fwdp(self,R,f):
 		# Forward projection operator. Work with GPU pointers
-		self.clphandle.execFwdManyPtr(Rptr,fptr)
+		self.clphandle.execFwdManyPtr(R.ptr,f.ptr)
 
-	def adjp(self,fptr,Rptr):
+	def adjp(self,f,R):
 		# Forward projection operator. Work with GPU pointers
-		self.clphandle.execAdjManyPtr(fptr,Rptr)
+		self.clphandle.execAdjManyPtr(f.ptr,R.ptr)
 		 
 
 

@@ -23,33 +23,23 @@ Rg = gpuarray.to_gpu(R)
 Rfg = gpuarray.GPUArray([Nslices,Nproj,N],dtype="float32")
 fRg = gpuarray.GPUArray([Nslices,N,N],dtype="float32")
 
-# allocate cpu memory for results
-Rfc = np.zeros([Nslices,Nproj,N],dtype="float32")
-fRc = np.zeros([Nslices,N,N],dtype="float32")
-
 # class lprec
-clpthandle = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
-clpthandle.precompute(1)
-clpthandle.initcmem(1)
+lp = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
+lp.precompute(1)
+lp.initcmem(1)
 
 # compute in a standard way (with cpu-gpu data transfers)
-Rf = clpthandle.fwd(f)
-fR = clpthandle.adj(R)
+Rf = lp.fwd(f)
+fR = lp.adj(R)
 
 # compute with gpu pointers
-clpthandle.fwdp(Rfg.ptr,fg.ptr)
-clpthandle.adjp(fRg.ptr,Rg.ptr)
-
-# compute with cpu pointers
-clpthandle.fwdp(Rfc.__array_interface__['data'][0],f.__array_interface__['data'][0])
-clpthandle.adjp(fRc.__array_interface__['data'][0],R.__array_interface__['data'][0])
+lp.fwdp(Rfg,fg)
+lp.adjp(fRg,Rg)
 
 #check the result
-print("Differences for three approaches")
+print("Differences for two approaches")
 print(np.linalg.norm(Rfg.get()-Rf))
 print(np.linalg.norm(fRg.get()-fR))
-print(np.linalg.norm(Rfc-Rf))
-print(np.linalg.norm(fRc-fR))
 
 
 print("Adjoint test (should be < 0.01)")
