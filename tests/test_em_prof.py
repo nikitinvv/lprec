@@ -1,8 +1,7 @@
 from lprec import lpTransform
 import numpy as np
 import struct 
-import pycuda.gpuarray as gpuarray
-import pycuda.autoinit
+import cupy as cp
 from timing import tic,toc
 
 #@profile
@@ -47,11 +46,11 @@ def main():
     recon1 = recon
 
     # Approach 2 (work with gpu pointers)
-    recon = gpuarray.to_gpu(recon0)
-    tomo = gpuarray.to_gpu(tomo)
-    xi = gpuarray.GPUArray([Nslices,N,N],dtype="float32")
-    g = gpuarray.GPUArray([Nslices,Nproj,N],dtype="float32")
-    upd = gpuarray.GPUArray([Nslices,N,N],dtype="float32")
+    recon = cp.array(recon0)
+    tomo = cp.array(tomo)
+    xi = cp.zeros([Nslices,N,N],dtype="float32")
+    g = cp.zeros([Nslices,Nproj,N],dtype="float32")
+    upd = cp.zeros([Nslices,N,N],dtype="float32")
 
     # R^*(ones)
     lp.adjp(xi, tomo*0+1)

@@ -1,8 +1,7 @@
 from lprec import lpTransform
 import numpy as np
 import struct 
-import pycuda.gpuarray as gpuarray
-import pycuda.autoinit
+import cupy as cp
 
 N = 512
 Nproj = np.int(3*N/2)
@@ -16,12 +15,11 @@ f = np.float32(np.random.random([Nslices,N,N]))
 R = np.float32(np.random.random([Nslices,Nproj,N]))
 
 # copy arrays to gpu
-fg = gpuarray.to_gpu(f)
-Rg = gpuarray.to_gpu(R)
-
+fg = cp.array(f)
+Rg = cp.array(R)
 # allocate gpu memory for results
-Rfg = gpuarray.GPUArray([Nslices,Nproj,N],dtype="float32")
-fRg = gpuarray.GPUArray([Nslices,N,N],dtype="float32")
+Rfg = cp.zeros([Nslices,Nproj,N],dtype="float32")
+fRg = cp.zeros([Nslices,N,N],dtype="float32")
 
 # class lprec
 lp = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
