@@ -10,13 +10,13 @@ filter_type = 'None'
 cor = N/2
 interp_type = 'cubic'
 
-fid = open('./data/f', 'rb')
+fid = open('tests/data/f', 'rb')
 f = np.float32(np.reshape(struct.unpack(N*N*'f', fid.read(N*N*4)), [1, N, N]))
 fa = np.zeros([Nslices, N, N], dtype=np.float32)
 for k in range(0, Nslices):
 	fa[k, :, :] = f*(Nslices-k)
 
-fid = open('./data/R', 'rb')
+fid = open('tests/data/R', 'rb')
 R = np.float32(np.reshape(struct.unpack(
 	Nproj*N*'f', fid.read(Nproj*N*4)), [1, Nproj, N]))
 Ra = np.zeros([Nslices, Nproj, N], dtype=np.float32)

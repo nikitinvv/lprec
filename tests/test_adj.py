@@ -3,7 +3,7 @@ import numpy as np
 import struct
 
 N = 512
-Nproj = np.int(3*N/2)
+Nproj = 300
 Nslices = 1
 filter_type = 'None'
 cor = N/2
