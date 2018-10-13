@@ -9,22 +9,7 @@ python setup.py install
 See tests/
 
 ## Wrapper in tomopy
-import tomopy
-
-obj = tomopy.shepp3d() # Generate an object.
-
-ang = tomopy.angles(180) # Generate uniformly spaced tilt angles.
-
-sim = tomopy.project(obj, ang) # Calculate projections.
-
-rec = tomopy.recon(sim, ang, algorithm=tomopy.lprec,
-      lpmethod='fbp', filter_name='parzen', interp_type='cubic', ncore=1)
-
-import pylab
-
-pylab.imshow(rec[64], cmap='gray')
-
-pylab.show()
+See tomopy/tomopy/recon/wrappers.py file for a wrapper to the lprec library. Also see tomopy/doc/demo/lprec.ipynb jupyter notebook for functionality demonstration. The notebook show examples of reconstruction by FBP, gradient-descent, conjugate gradient, TV, and EM methods.   
 
 ## Iterative schemes
 
