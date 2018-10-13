@@ -9,7 +9,7 @@ python setup.py install
 See tests/
 
 ## Wrapper in tomopy
-See tomopy/tomopy/recon/wrappers.py file for a wrapper to the lprec library. Also see tomopy/doc/demo/lprec.ipynb jupyter notebook for functionality demonstration. The notebook show examples of reconstruction by FBP, gradient-descent, conjugate gradient, TV, and EM methods.   
+See tomopy/tomopy/recon/wrappers.py file for a wrapper to the lprec library. Also see tomopy/doc/demo/lprec.ipynb jupyter notebook for functionality demonstration. The notebook shows examples of reconstruction by FBP, gradient-descent, conjugate gradient, TV, and EM methods.   
 
 ## Iterative schemes
 
