@@ -50,7 +50,7 @@ def create_fwd(P):
 		p2lp1[k] = (p2lp1[k]-P.thsp[0])/(P.thsp[-1]-P.thsp[0])*(P.Ntheta-1)
 		p2lp2[k] = (p2lp2[k]-P.rhosp[0])/(P.rhosp[-1]-P.rhosp[0])*(P.Nrho-1)
 
-	const = P.N*pi/P.Nproj/4/P.aR
+	const = sqrt(P.N)*pi/P.Nproj/4/P.aR*sqrt(P.osangles)*sqrt(P.Nproj)/sqrt(2)#adjust constant
 	fZgpu = fZ[:,arange(0,int(P.Ntheta/2)+1)]*const
 	if(P.interp_type=='cubic'):
 		fZgpu = fZgpu/(P.B3com[:,arange(0,int(P.Ntheta/2)+1)])

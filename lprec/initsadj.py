@@ -88,7 +88,7 @@ def create_adj(P,filter_type):
 		C2lp1[k] = (C2lp1[k]-P.thsp[0])/(P.thsp[-1]-P.thsp[0])*(P.Ntheta-1)
 		C2lp2[k] = (C2lp2[k]-P.rhosp[0])/(P.rhosp[-1]-P.rhosp[0])*(P.Nrho-1)
 	
-	const = (P.N+1)/float32(P.N)*(P.N-1)/2/P.N
+	const = (P.N+1)/float32(P.N)*(P.N-1)/2/P.N/sqrt(P.N)*sqrt(P.osangles)*sqrt(P.Nproj)/sqrt(2)
 	fZgpu = fZ[:,arange(0,int(P.Ntheta/2)+1)]*const
 	if(P.interp_type=='cubic'):
 		fZgpu = fZgpu/(P.B3com[:,arange(0,int(P.Ntheta/2)+1)])

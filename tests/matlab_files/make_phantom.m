@@ -10,6 +10,6 @@ fid=fopen('../data/f','wb');
 fwrite(fid,flipud(ff),'single');
 fclose(fid);
 fid=fopen('../data/R','wb');
-fwrite(fid,flipud(h')*2*N,'single');
+fwrite(fid,flipud(h')*2*N*sqrt(2)/sqrt(Ntheta)*sqrt(N),'single');
 fclose(fid);
 % exit

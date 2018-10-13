@@ -54,7 +54,6 @@ def create_gl(N0,Nproj,Nslices,cor,interp_type):
 
 	#struct with global parameters
 	P = Pgl(Nspan,N,N0,Nproj,Nslices,Ntheta,Nrho,proj,s,thsp,rhosp,aR,beta,B3com,am,g,cor,osangles,interp_type)
-
 	#represent as array
 	params = float32(append([P.N,P.N0,P.Ntheta,P.Nrho,P.Nspan,P.Nproj,P.Nslices,P.cor,P.osangles,P.interp_type=='cubic'],erho))
 	return (P,params)
