@@ -1,13 +1,15 @@
 import cupy as cp
 import numpy as np
 
-def grad(lp, init_recon, tomo0, num_iter, reg_par):
+def grad(lp, init_recon, tomo0, num_iter, reg_par,gpu):
     """
     Reconstruction with the gradient descent method
     with the regularization parameter reg_par,
     if reg_par<0, then reg_par is computed on each iteration
     Solving the problem 1/2||R(recon)-tomo||^2_2 -> min
     """
+
+    cp.cuda.Device(gpu).use()
     #Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
@@ -18,8 +20,8 @@ def grad(lp, init_recon, tomo0, num_iter, reg_par):
     grad0 = recon*0
 
     for i in range(0, num_iter):
-        lp.fwdp(g,recon)
-        lp.adjp(grad,2*(g-tomo))
+        lp.fwdp(g,recon,gpu)
+        lp.adjp(grad,2*(g-tomo),gpu)
         if(reg_par < 0):
             if(i == 0):
                 lam = 1e-3*cp.ones(tomo.shape[0],dtype="float32")
@@ -36,12 +38,12 @@ def grad(lp, init_recon, tomo0, num_iter, reg_par):
 
     return recon.get()
 
-def cg(lp, init_recon, tomo0, num_iter, reg_par):
+def cg(lp, init_recon, tomo0, num_iter, reg_par,gpu):
     """
     Reconstruction with the conjugate gradient method
     Solving the problem 1/2||R(recon)-tomo||^2_2 -> min
     """
-
+    cp.cuda.Device(gpu).use()
     #Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
@@ -59,7 +61,7 @@ def cg(lp, init_recon, tomo0, num_iter, reg_par):
     rsold = cp.sum(r*r)
     #cg iterations
     for i in range(0,num_iter):
-        lp.fwdp(g,p); lp.adjp(f,g)
+        lp.fwdp(g,p,gpu); lp.adjp(f,g,gpu)
         alpha = rsold/cp.sum(p*f)
         recon = recon+alpha*p 
         r = r-alpha*f
@@ -69,41 +71,44 @@ def cg(lp, init_recon, tomo0, num_iter, reg_par):
 
     return recon.get()
 
-def em(lp,init_recon,tomo0,num_iter,reg_par):
+def em(lp,init_recon,tomo0,num_iter,reg_par,gpu):
     """
     Reconstruction with the Expectation Maximization algorithm for denoising
     with parameter reg_par manually chosen for avoiding division by 0.
     Maximization of the likelihood function L(tomo,rho) 
+
     """   
+
+    cp.cuda.Device(gpu).use()
+
     #Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
     xi = cp.zeros(recon.shape,dtype="float32")
     g = cp.zeros(tomo0.shape,dtype="float32")
     upd = cp.zeros(recon.shape,dtype="float32")
-    
     #Constructing iterative scheme
     eps = reg_par
     # R^*(ones)
-    lp.adjp(xi, tomo*0+1)
+    lp.adjp(xi, tomo*0+1,gpu)
     # modification for avoing division by 0
     xi = xi+eps*np.pi/2
     e = cp.float32(np.max(tomo.get())*eps)
     #grad iteratins
     for i in range(0, num_iter):
-        lp.fwdp(g,recon)
-        lp.adjp(upd,tomo/(g+e))
+        lp.fwdp(g,recon,gpu)
+        lp.adjp(upd,tomo/(g+e),gpu)
         recon = recon*(upd/xi)
 
-    #copy result from gpu
     return recon.get()
 
-def tv(lp, init_recon, tomo0, num_iter, reg_par):
+def tv(lp, init_recon, tomo0, num_iter, reg_par, gpu):
     """
     Reconstruction with the total variation method
     with the regularization parameter reg_par.
     Solving the problem 1/2||R(recon)-tomo||^2_2 + reg_par*TV(recon) -> min
     """
+    cp.cuda.Device(gpu).use()
     #Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
@@ -128,7 +133,7 @@ def tv(lp, init_recon, tomo0, num_iter, reg_par):
         prox0x = prox0x/nprox
         prox0y = prox0y/nprox
         # compute proximal prox1
-        lp.fwdp(g,recon)
+        lp.fwdp(g,recon,gpu)
         prox1 = (prox1+c*g-c*tomo)/(1+c)
 
         # backward step
@@ -137,7 +142,7 @@ def tv(lp, init_recon, tomo0, num_iter, reg_par):
         div0[:, :, 0] = prox0x[:, :, 0]
         div0[:, 1:, :] += (prox0y[:, 1:, :]-prox0y[:, :-1, :])
         div0[:, 0, :] += prox0y[:, 0, :]
-        lp.adjp(p,prox1)
+        lp.adjp(p,prox1,gpu)
         recon0 = recon0-c*p+c*div0
 
         # update recon

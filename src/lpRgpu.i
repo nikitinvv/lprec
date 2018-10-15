@@ -61,7 +61,7 @@ class lpRgpu{
 	
 public:
 %apply (float* INPLACE_ARRAY1, int DIM1) {(float* params, int Nparams)};
-	lpRgpu(float* params, int Nparams);
+	lpRgpu(float* params, int Nparams, int gpu);
 %clear (float* params, int Nparams);
 	~lpRgpu();
 	void printGlobalParameters();
@@ -74,13 +74,13 @@ public:
 
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int* paramsi, int Nparamsi)};
 %apply (float* INPLACE_ARRAY1, int DIM1) {(float* paramsf, int Nparamsf)};
-	void initFwd(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf);
+	void initFwd(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf, int gpu);
 %clear (int* paramsi, int Nparamsi);
 %clear (float* paramsf, int Nparamsf);
 
 %apply (int* INPLACE_ARRAY1, int DIM1) {(int* paramsi, int Nparamsi)};
 %apply (float* INPLACE_ARRAY1, int DIM1) {(float* paramsf, int Nparamsf)};
-	void initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf);
+	void initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf, int gpu);
 %clear (int* paramsi, int Nparamsi);
 %clear (float* paramsf, int Nparamsf);
 
@@ -102,8 +102,8 @@ public:
 	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_);
 %clear (float* R, int Nslices2_,int Nproj_, int N_);
 %clear (float* f, int Nslices1_, int N2_, int N1_);
-	void execFwdManyPtr(size_t Rptr, size_t fptr);
-	void execAdjManyPtr(size_t fptr, size_t Rptr);
+	void execFwdManyPtr(size_t Rptr, size_t fptr, int gpu);
+	void execAdjManyPtr(size_t fptr, size_t Rpt, int gpu);
 
 	void applyFilter();
 	void padding(int N_);

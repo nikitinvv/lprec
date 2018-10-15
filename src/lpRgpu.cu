@@ -4,8 +4,9 @@
 
 
 //init global parameters
-lpRgpu::lpRgpu(float* params, int Nparams)
+lpRgpu::lpRgpu(float* params, int Nparams, int gpu)
 {  
+	cudaSetDevice(gpu);
 	readGlobalParametersArr(params);
 	err = cudaMalloc((void **)&derho, Ntheta*Nrho*sizeof(float)); if (err!=0) callErr(cudaGetErrorString(err));
 	err = cudaMalloc((void **)&dfl, Nslices*Ntheta*Nrho*sizeof(float)); if (err!=0) callErr(cudaGetErrorString(err));
@@ -56,8 +57,9 @@ lpRgpu::~lpRgpu()
 }
 
 //init parameters for forward (Radon) tranform 
-void lpRgpu::initFwd(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf)
+void lpRgpu::initFwd(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf, int gpu)
 {
+	cudaSetDevice(gpu);
 	fgs = new fwdgrids(Nspan);
 	readFwdParametersArr(paramsi,paramsf);
 
@@ -92,8 +94,9 @@ void lpRgpu::deleteFwd()
 }
 
 //init parameters for adjoint tranform (back-projection)
-void lpRgpu::initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf)
+void lpRgpu::initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf, int gpu)
 {
+	cudaSetDevice(gpu);
 	ags = new adjgrids(Nspan);
 	readAdjParametersArr(paramsi,paramsf);
 	ags->initgpu();
@@ -202,8 +205,9 @@ void lpRgpu::execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, in
     copy3Dshifted(f,0,0,make_cudaExtent(N0, N0, Nslices),df,N/2-N0/2,N/2-N0/2,make_cudaExtent(N,N,Nslices),make_cudaExtent(N0,N0,Nslices));
 }
 
-void lpRgpu::execFwdManyPtr(size_t Rptr, size_t fptr)
+void lpRgpu::execFwdManyPtr(size_t Rptr, size_t fptr, int gpu)
 {
+	cudaSetDevice(gpu);
 	cudaMemset(df,0,N*N*Nslices*sizeof(float));
 	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
 	copy3Dshifted(df,N/2-N0/2,N/2-N0/2,make_cudaExtent(N,N,Nslices),(float*)fptr,0,0,make_cudaExtent(N0, N0, Nslices),make_cudaExtent(N0,N0,Nslices));
@@ -213,8 +217,9 @@ void lpRgpu::execFwdManyPtr(size_t Rptr, size_t fptr)
 }
 
 //compute back-projection for several slices
-void lpRgpu::execAdjManyPtr(size_t fptr, size_t Rptr)
+void lpRgpu::execAdjManyPtr(size_t fptr, size_t Rptr, int gpu)
 {
+	cudaSetDevice(gpu);
 	cudaMemset(dR,0,Nproj*N*Nslices*sizeof(float));
 	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
 	copy3Dshifted(dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),(float*)Rptr,0,0,make_cudaExtent(N0,Nproj/osangles,Nslices),make_cudaExtent(N0,Nproj/osangles,Nslices));

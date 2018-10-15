@@ -20,12 +20,12 @@ class lpTransform:
 			Pfwd,self.fwdparsi,self.fwdparamsf = initsfwd.create_fwd(Pgl)
 		Padj,self.adjparsi,self.adjparamsf = initsadj.create_adj(Pgl,self.filter_type)
 	
-	def initcmem(self,flg):
+	def initcmem(self,flg,gpu):
 		#init memory in C (could be used by several gpus)
-		self.clphandle = lpRgpu.lpRgpu(self.glpars)
+		self.clphandle = lpRgpu.lpRgpu(self.glpars,gpu)
 		if(flg):
-			self.clphandle.initFwd(self.fwdparsi,self.fwdparamsf)
-		self.clphandle.initAdj(self.adjparsi,self.adjparamsf)	
+			self.clphandle.initFwd(self.fwdparsi,self.fwdparamsf,gpu)
+		self.clphandle.initAdj(self.adjparsi,self.adjparamsf,gpu)	
 
 	def fwd(self,f):
 		# Forward projection operator
@@ -39,13 +39,13 @@ class lpTransform:
 		self.clphandle.execAdjMany(f,R)
 		return f
 
-	def fwdp(self,R,f):
+	def fwdp(self,R,f,gpu):
 		# Forward projection operator. Work with GPU pointers
-		self.clphandle.execFwdManyPtr(R.data.ptr,f.data.ptr)
+		self.clphandle.execFwdManyPtr(R.data.ptr,f.data.ptr,gpu)
 
-	def adjp(self,f,R):
+	def adjp(self,f,R,gpu):
 		# Forward projection operator. Work with GPU pointers
-		self.clphandle.execAdjManyPtr(f.data.ptr,R.data.ptr)
+		self.clphandle.execAdjManyPtr(f.data.ptr,R.data.ptr,gpu)
 		 
 
 
