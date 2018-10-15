@@ -28,11 +28,11 @@ def create_gl(N0,Nproj,Nslices,cor,interp_type):
 	beta = pi/Nspan
 
 	#size after zero padding in radial direction
-	N = int(N0+abs(N0/2-cor)*2)
+	N = int(ceil((N0+abs(N0/2-cor)*2.0)/16.0)*16)
+
 	#size after zero padding in the angle direction (for nondense sampling rate)
 	osangles = int(max(round(3.0*N/2.0/Nproj),1))
 	Nproj = osangles*Nproj
-
 	#polar space
 	proj = arange(0,Nproj)*pi/Nproj-beta/2
 	s = linspace(-1,1,N)
