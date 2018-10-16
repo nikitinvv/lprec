@@ -15,9 +15,9 @@ def multigpu(lp,recon,tomo,num_iter,reg_par,gpu,Nssimgpu):
 	return recon
 
 def main():
-    N = 1008
+    N = 1024
     Nproj = np.int(3*N/2)
-    Ns = 1007
+    Ns = 1024
     filter_type = 'None'
     cor = N/2
     interp_type = 'cubic'

@@ -76,8 +76,8 @@ public:
 	void execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_);
 
 	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_);
-	void execFwdManyPtr(size_t Rptr, size_t fptr, int gpu);
-	void execAdjManyPtr(size_t fptr, size_t Rptr, int gpu);
+	void execFwdManyPtr(size_t Rptr, size_t fptr, int Nslices0, int gpu);
+	void execAdjManyPtr(size_t fptr, size_t Rptr, int Nslices0,  int gpu);
 
 	void applyFilter();
 	void padding(int N_);

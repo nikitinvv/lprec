@@ -4579,6 +4579,7 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execFwdManyPtr(PyObject *SWIGUNUSEDPARM(self),
   size_t arg2 ;
   size_t arg3 ;
   int arg4 ;
+  int arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   size_t val2 ;
@@ -4587,12 +4588,15 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execFwdManyPtr(PyObject *SWIGUNUSEDPARM(self),
   int ecode3 = 0 ;
   int val4 ;
   int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:lpRgpu_execFwdManyPtr",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:lpRgpu_execFwdManyPtr",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_lpRgpu, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "lpRgpu_execFwdManyPtr" "', argument " "1"" of type '" "lpRgpu *""'"); 
@@ -4613,7 +4617,12 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execFwdManyPtr(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "lpRgpu_execFwdManyPtr" "', argument " "4"" of type '" "int""'");
   } 
   arg4 = static_cast< int >(val4);
-  (arg1)->execFwdManyPtr(arg2,arg3,arg4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "lpRgpu_execFwdManyPtr" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  (arg1)->execFwdManyPtr(arg2,arg3,arg4,arg5);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4627,6 +4636,7 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execAdjManyPtr(PyObject *SWIGUNUSEDPARM(self),
   size_t arg2 ;
   size_t arg3 ;
   int arg4 ;
+  int arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   size_t val2 ;
@@ -4635,12 +4645,15 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execAdjManyPtr(PyObject *SWIGUNUSEDPARM(self),
   int ecode3 = 0 ;
   int val4 ;
   int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:lpRgpu_execAdjManyPtr",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:lpRgpu_execAdjManyPtr",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_lpRgpu, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "lpRgpu_execAdjManyPtr" "', argument " "1"" of type '" "lpRgpu *""'"); 
@@ -4661,7 +4674,12 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execAdjManyPtr(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "lpRgpu_execAdjManyPtr" "', argument " "4"" of type '" "int""'");
   } 
   arg4 = static_cast< int >(val4);
-  (arg1)->execAdjManyPtr(arg2,arg3,arg4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "lpRgpu_execAdjManyPtr" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  (arg1)->execAdjManyPtr(arg2,arg3,arg4,arg5);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:

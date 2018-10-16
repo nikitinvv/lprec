@@ -91,9 +91,9 @@ def em(lp,init_recon,tomo0,num_iter,reg_par,gpu):
     eps = reg_par
     # R^*(ones)
     lp.adjp(xi, tomo*0+1,gpu)
+    xi = xi+1e-5
     # modification for avoing division by 0
-    xi = xi+eps*np.pi/2
-    e = cp.float32(np.max(tomo.get())*eps)
+    e = cp.float32(eps)
     #grad iteratins
     for i in range(0, num_iter):
         lp.fwdp(g,recon,gpu)
@@ -129,7 +129,7 @@ def tv(lp, init_recon, tomo0, num_iter, reg_par, gpu):
         # compute proximal prox0
         prox0x[:, :, :-1] += c*(recon[:, :, 1:]-recon[:, :, :-1])
         prox0y[:, :-1, :] += c*(recon[:, 1:, :]-recon[:, :-1, :])
-        nprox = cp.array(np.maximum(1, (cp.sqrt(prox0x*prox0x+prox0y*prox0y)/lam).get()))
+        nprox = cp.array(cp.maximum(1, (cp.sqrt(prox0x*prox0x+prox0y*prox0y)/lam)))
         prox0x = prox0x/nprox
         prox0y = prox0y/nprox
         # compute proximal prox1
