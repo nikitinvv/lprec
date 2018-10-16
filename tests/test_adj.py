@@ -8,21 +8,22 @@ Nslices = 1
 filter_type = 'None'
 cor = N/2
 interp_type = 'cubic'
+gpu = 0
 
 f = np.float32(np.random.random([Nslices,N,N]))
 R = np.float32(np.random.random([Nslices,Nproj,N]))
 
 
-clpthandle = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
-clpthandle.precompute(1)
-clpthandle.initcmem(1)
+lp = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
+lp.precompute(1)
+lp.initcmem(1,gpu)
 
-Rf = clpthandle.fwd(f)
-frec = clpthandle.adj(R)
-Rrec = clpthandle.fwd(frec)
+Rf = lp.fwd(f,gpu)
+frec = lp.adj(R,gpu)
+Rrec = lp.fwd(frec,gpu)
 
 
-RR = clpthandle.fwd(clpthandle.adj(R))
+RR = lp.fwd(lp.adj(R,gpu),gpu)
 print(np.sum(R*RR)/np.sum(RR*RR))
 
 

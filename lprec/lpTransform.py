@@ -29,16 +29,16 @@ class lpTransform:
 			self.clphandle[gpu].initFwd(self.fwdparsi,self.fwdparamsf,gpu)
 		self.clphandle[gpu].initAdj(self.adjparsi,self.adjparamsf,gpu)	
 
-	def fwd(self,f):
+	def fwd(self,f,gpu):
 		# Forward projection operator
 		R = np.zeros([f.shape[0],self.Nproj,self.N],dtype = 'float32')
-		self.clphandle.execFwdMany(R,f)
+		self.clphandle[gpu].execFwdMany(R,f,gpu)
 		return R
 	
-	def adj(self,R):
+	def adj(self,R,gpu):
 		# Adjoint projection operator
 		f = np.zeros([R.shape[0],self.N,self.N],dtype = 'float32')
-		self.clphandle.execAdjMany(f,R)
+		self.clphandle[gpu].execAdjMany(f,R,gpu)
 		return f
 
 	def fwdp(self,R,f,gpu):

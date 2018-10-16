@@ -4448,16 +4448,20 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execFwdMany(PyObject *SWIGUNUSEDPARM(self), Py
   int arg7 ;
   int arg8 ;
   int arg9 ;
+  int arg10 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyArrayObject *array2 = NULL ;
   PyArrayObject *array6 = NULL ;
   int is_new_object6 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:lpRgpu_execFwdMany",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:lpRgpu_execFwdMany",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_lpRgpu, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "lpRgpu_execFwdMany" "', argument " "1"" of type '" "lpRgpu *""'"); 
@@ -4485,7 +4489,12 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execFwdMany(PyObject *SWIGUNUSEDPARM(self), Py
     arg8 = (int) array_size(array6,1);
     arg9 = (int) array_size(array6,2);
   }
-  (arg1)->execFwdMany(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  ecode10 = SWIG_AsVal_int(obj3, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "lpRgpu_execFwdMany" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = static_cast< int >(val10);
+  (arg1)->execFwdMany(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
   resultobj = SWIG_Py_Void();
   {
     if (is_new_object6 && array6)
@@ -4516,16 +4525,20 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execAdjMany(PyObject *SWIGUNUSEDPARM(self), Py
   int arg7 ;
   int arg8 ;
   int arg9 ;
+  int arg10 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyArrayObject *array2 = NULL ;
   PyArrayObject *array6 = NULL ;
   int is_new_object6 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:lpRgpu_execAdjMany",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:lpRgpu_execAdjMany",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_lpRgpu, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "lpRgpu_execAdjMany" "', argument " "1"" of type '" "lpRgpu *""'"); 
@@ -4553,7 +4566,12 @@ SWIGINTERN PyObject *_wrap_lpRgpu_execAdjMany(PyObject *SWIGUNUSEDPARM(self), Py
     arg8 = (int) array_size(array6,1);
     arg9 = (int) array_size(array6,2);
   }
-  (arg1)->execAdjMany(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  ecode10 = SWIG_AsVal_int(obj3, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "lpRgpu_execAdjMany" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = static_cast< int >(val10);
+  (arg1)->execAdjMany(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
   resultobj = SWIG_Py_Void();
   {
     if (is_new_object6 && array6)

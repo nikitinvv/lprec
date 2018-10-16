@@ -9,6 +9,7 @@ Nslices = 1
 filter_type = 'None'
 cor = N/2
 interp_type = 'cubic'
+gpu = 0
 
 #init random arrays
 f = np.float32(np.random.random([Nslices,N,N]))
@@ -24,25 +25,15 @@ fRg = cp.zeros([Nslices,N,N],dtype="float32")
 # class lprec
 lp = lpTransform.lpTransform(N, Nproj, Nslices, filter_type, cor, interp_type)
 lp.precompute(1)
-lp.initcmem(1)
-
-# compute in a standard way (with cpu-gpu data transfers)
-Rf = lp.fwd(f)
-fR = lp.adj(R)
+lp.initcmem(1,gpu)
 
 # compute with gpu pointers
-lp.fwdp(Rfg,fg)
-lp.adjp(fRg,Rg)
-
-#check the result
-print("Differences for two approaches")
-print(np.linalg.norm(Rfg.get()-Rf))
-print(np.linalg.norm(fRg.get()-fR))
-
+lp.fwdp(Rfg,fg,gpu)
+lp.adjp(fRg,Rg,gpu)
 
 print("Adjoint test (should be < 0.01)")
 #self adjoint test
-sum1 = sum(np.ndarray.flatten(Rf)*np.ndarray.flatten(R))
-sum2 = sum(np.ndarray.flatten(fR)*np.ndarray.flatten(f))
+sum1 = sum(np.ndarray.flatten(Rfg.get())*np.ndarray.flatten(Rg.get()))
+sum2 = sum(np.ndarray.flatten(fRg.get())*np.ndarray.flatten(fg.get()))
 print(np.linalg.norm(sum1-sum2)/np.linalg.norm(sum2))
 

@@ -93,13 +93,13 @@ public:
 
 %apply (float* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* R, int Nslices2_,int Nproj_, int N_)};
 %apply (float* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* f, int Nslices1_, int N2_, int N1_)};
-	void execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_);
+	void execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_, int gpu);
 %clear (float* R, int Nslices2_,int Nproj_, int N_);
 %clear (float* f, int Nslices1_, int N2_, int N1_);
 
 %apply (float* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* R, int Nslices2_,int Nproj_, int N_)};
 %apply (float* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(float* f, int Nslices1_, int N2_, int N1_)};
-	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_);
+	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_, int gpu);
 %clear (float* R, int Nslices2_,int Nproj_, int N_);
 %clear (float* f, int Nslices1_, int N2_, int N1_);
 	void execFwdManyPtr(size_t Rptr, size_t fptr, int Nslices0, int gpu);

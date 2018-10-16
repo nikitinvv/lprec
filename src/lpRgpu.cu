@@ -37,6 +37,7 @@ lpRgpu::lpRgpu(float* params, int Nparams, int gpu)
 	err = cudaMalloc((void **)&df, Nslices*N*N*sizeof(float));	if (err!=0) callErr(cudaGetErrorString(err));
 	dfZfwd = NULL;//for checking if fwd is created
 }
+
 lpRgpu::~lpRgpu()
 {
 	delete[] erho;
@@ -182,8 +183,9 @@ void copy3Dstep(float *dst, float* src, int stepy,int N, int Nproj, int Nslices,
 
 
 //compute Radon transform for several slices
-void lpRgpu::execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_)
+void lpRgpu::execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_, int gpu)
 {
+	cudaSetDevice(gpu);
 	cudaMemset(df,0,N*N*Nslices*sizeof(float));
 	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
 	copy3Dshifted(df,N/2-N0/2,N/2-N0/2,make_cudaExtent(N,N,Nslices),f,0,0,make_cudaExtent(N0, N0, Nslices),make_cudaExtent(N0,N0,Nslices));
@@ -193,8 +195,9 @@ void lpRgpu::execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, 
 }
 
 //compute back-projection for several slices
-void lpRgpu::execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_)
+void lpRgpu::execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_, int gpu)
 {
+	cudaSetDevice(gpu);
 	cudaMemset(dR,0,Nproj*N*Nslices*sizeof(float));
 	cudaMemset(dtmpR,0,Nproj*N*Nslices*sizeof(float));
 	copy3Dshifted(dtmpR,N/2-cor,0,make_cudaExtent(N, Nproj/osangles, Nslices),R,0,0,make_cudaExtent(N0,Nproj/osangles,Nslices),make_cudaExtent(N0,Nproj/osangles,Nslices));
