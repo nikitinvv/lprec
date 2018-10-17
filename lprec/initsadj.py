@@ -146,7 +146,7 @@ def take_filter(N,filter):
 	elif (filter=='hann'):
 	        wfa = Ne*0.5*wint(12,t)*(1+cos(pi*t/d)) / 2.0*(t/d<=1)
 	elif (filter=='parzen'):
-	        wfa = Ne*0.5*wint(12,t)*pow(1-t,3)#*(t/d<=1)
+	        wfa = Ne*0.5*wint(12,t)*pow(1-t/d,3)*(t/d<=1)
 
 	wfa = wfa*(wfa>=0)
 	wfamid = 2*wfa[0]
