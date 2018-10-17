@@ -19,8 +19,8 @@ def lpmultigpu(lp,lpmethod,recon,tomo,num_iter,reg_par,gpu,Nssimgpu):
 
     return recon
 
-def main():
-    N = 256
+def test_gpus_many():
+    N = 512
     Nproj = np.int(3*N/2)
     Ns = 32
     filter_type = 'None'
@@ -28,8 +28,8 @@ def main():
     interp_type = 'cubic'
 
     #init random arrays
-    R = np.float32(np.random.random([Ns,Nproj,N]))
-
+    R = np.float32(np.sin(np.arange(0,Ns*Nproj*N)/float(Ns*Nproj)))
+    R = np.reshape(R,[Ns,Nproj,N])
 
 
     #input parameters
@@ -37,8 +37,8 @@ def main():
     reg_par = 0.001#*np.max(tomo)
     num_iter = 100
     recon = np.zeros([Ns,N,N],dtype="float32")+1e-3
-    method = "em"
-    gpu_list=[0]
+    method = "tv"
+    gpu_list=[0,1]
      # list of available methods for reconstruction
     lpmethods_list = {
                 'fbp': lpmethods.fbp,
@@ -73,8 +73,11 @@ def main():
        ids = range(igpu*Nspergpu, min(Ns,(igpu+1)*Nspergpu))
        recon[ids]=jobs[igpu].result()
     
-    print(np.linalg.norm(recon))
+    norm = np.linalg.norm(recon)
+    print(norm)
+    return norm
 
 
-if __name__ == "__main__": main()
+if __name__ == "__main__": 
+    test_gpus_many()
 

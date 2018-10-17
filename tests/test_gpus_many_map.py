@@ -18,31 +18,28 @@ def lpmultigpu(lp,lpmethod,recon,tomo,num_iter,reg_par,gpu_list,ids):
 
     # reconstruct
     recon[ids] = lpmethod(lp, recon[ids], tomo[ids], num_iter, reg_par, gpu)
-    print([gpu,ids,np.linalg.norm(tomo[ids]),np.linalg.norm(recon[ids])])
-
+ #   print([gpu,ids])
 
     return recon[ids]
 
-def main():
-    N = 256
+def test_gpus_many_map():
+    N = 512
     Nproj = np.int(3*N/2)
     Ns = 32
     filter_type = 'None'
-    cor = N/2
+    cor = int(N/2)-3
     interp_type = 'cubic'
 
     #init random array
-    #R = np.float32(np.random.random([Ns,Nproj,N]))
-    R = np.reshape(np.float32(np.sin(np.arange(0,Ns*Nproj*N)/float(Ns*Nproj))),[Ns,Nproj,N])
-
-
+    R = np.float32(np.sin(np.arange(0,Ns*Nproj*N)/float(Ns*Nproj)))
+    R = np.reshape(R,[Ns,Nproj,N])
     #input parameters
     tomo = R
-    reg_par = 0.001#*np.max(tomo)
-    num_iter = 10
+    reg_par = -1#*np.max(tomo)
+    num_iter = 100
     recon = np.zeros([Ns,N,N],dtype="float32")+1e-3
-    method = "cg"
-    gpu_list=[0,1]
+    method = "grad"
+    gpu_list = [0,1]
      # list of available methods for reconstruction
     lpmethods_list = {
                 'fbp': lpmethods.fbp,
@@ -55,7 +52,7 @@ def main():
     ngpus = len(gpu_list)
     # number of slices for simultaneous processing by 1 gpu 
     # (depends on gpu memory size, chosen for gpus with >= 4GB memory)
-    Nssimgpu = min(int(pow(2, 26)/float(N*N)), int(np.ceil(Ns/float(ngpus))))
+    Nssimgpu = min(int(pow(2, 24)/float(N*N)), int(np.ceil(Ns/float(ngpus))))
 
     # class lprec
     lp = lpTransform.lpTransform(N, Nproj, Nssimgpu, filter_type, cor, interp_type)
@@ -78,7 +75,11 @@ def main():
         for reconi in e.map(partial(lpmultigpu,lp,lpmethods_list[method], recon, tomo, num_iter, reg_par, gpu_list),ids_list):
             recon[np.arange(0,reconi.shape[0])+shift] = reconi
             shift += reconi.shape[0]
-    
 
-if __name__ == "__main__": main()
+    norm = np.linalg.norm(recon)
+    print(norm)
+    return norm 
+
+if __name__ == "__main__": 
+    test_gpus_many_map()
 
