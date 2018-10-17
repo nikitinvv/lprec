@@ -11,10 +11,10 @@ def fbp(lp, init_recon, tomo0, num_iter, reg_par, gpu):
     # choose device
     cp.cuda.Device(gpu).use()
 
-    #Allocating necessary gpu arrays
+    # Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
-    lp.adjp(recon,tomo*1, gpu) 
+    lp.adjp(recon, tomo*1, gpu)
 
     return recon.get()
 
@@ -29,7 +29,7 @@ def grad(lp, init_recon, tomo0, num_iter, reg_par, gpu):
     # choose device
     cp.cuda.Device(gpu).use()
 
-    #Allocating necessary gpu arrays
+    # Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
 
@@ -67,23 +67,23 @@ def cg(lp, init_recon, tomo0, num_iter, reg_par, gpu):
     # choose device
     cp.cuda.Device(gpu).use()
 
-    #Allocating necessary gpu arrays
+    # Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
     b = recon*0
     f = recon*0
     g = tomo*0
 
-    #Right side R^*(tomo)
+    # Right side R^*(tomo)
     lp.adjp(b, tomo*1, gpu)
 
-    #residual r = b - R^*(R(recon))
+    # residual r = b - R^*(R(recon))
     lp.fwdp(g, recon, gpu)
     lp.adjp(f, g, gpu)
     r = b-f
     p = r.copy()
     rsold = cp.sum(r*r)
-    #cg iterations
+    # cg iterations
     for i in range(0, num_iter):
         lp.fwdp(g, p, gpu)
         lp.adjp(f, g, gpu)
@@ -104,22 +104,22 @@ def em(lp, init_recon, tomo0, num_iter, reg_par, gpu):
     Maximization of the likelihood function L(tomo,rho) 
     """
 
-    #choose device
+    # choose device
     cp.cuda.Device(gpu).use()
 
-    #Allocating necessary gpu arrays
+    # Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
     xi = recon*0
     upd = recon*0
     g = tomo*0
 
-    #Constructing iterative scheme
+    # Constructing iterative scheme
     eps = reg_par
     # R^*(ones)
     lp.adjp(xi, tomo*0+1, gpu)
     xi = xi+1e-5
-    #em iteratins
+    # em iteratins
     for i in range(0, num_iter):
         lp.fwdp(g, recon, gpu)
         lp.adjp(upd, tomo/(g+cp.float32(eps)), gpu)
@@ -135,9 +135,9 @@ def tv(lp, init_recon, tomo0, num_iter, reg_par, gpu):
     Solving the problem 1/2||R(recon)-tomo||^2_2 + reg_par*TV(recon) -> min
     """
 
-    #choose device
+    # choose device
     cp.cuda.Device(gpu).use()
-    #Allocating necessary gpu arrays
+    # Allocating necessary gpu arrays
     recon = cp.array(init_recon)
     tomo = cp.array(tomo0)
     g = tomo*0
