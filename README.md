@@ -2,7 +2,7 @@
 Log-polar based method for tomography reconstruction.
 
 ## Installation
-export CUDAHOME=<path to cuda>
+export CUDAHOME=<<path to cuda>>
 
 python setup.py install
 
