@@ -25,6 +25,6 @@ See tomopy/tomopy/recon/wrappers.py file for a wrapper to the lprec library. Als
 lprec/lpmethods.py module contains FBP reconstruciton function and iterative schemes implemented with using the log-polar based method. Iterative schemes are written in python with using cupy module for GPU acceleration of linear algebra operations. Access to gpu data inside the lprec library works via pointers to gpu memory.
 
 ## Contribution
-For adding your own iterative methods based on forward and backward projection operators use module lpmethods.py
+For adding your own iterative methods based on forward and backward projection operators, use module lpmethods.py
 
 
