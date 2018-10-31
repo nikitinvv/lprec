@@ -1,15 +1,16 @@
 from lprec import lpTransform
 from lprec import lpmethods
+
 import matplotlib.pyplot as plt
 import numpy as np
+import cupy as cp
 import struct
 
 
-def test_foam():
-
-    N = 2016
-    Nproj = 299
-    Ns = 1
+def test_lpmethods():
+    N = 512
+    Nproj = int(3*N/4)
+    Ns = 8
     filter_type = 'None'
     cor = N/2
     interp_type = 'cubic'
@@ -24,31 +25,40 @@ def test_foam():
     reg_par = {'fbp': 0,
                'grad': -1,
                'cg': 0,
-               'em': 0.5,
+               'em': 0.01,
                'tv': 0.001,
                }
 
+    fid = open('tests/data/f', 'rb')
+    f = np.float32(np.reshape(struct.unpack(
+        N*N*'f', fid.read(N*N*4)), [1, N, N]))
+    fa = np.zeros([Ns, N, N], dtype=np.float32)
+    for k in range(0, Ns):
+        fa[k, :, :] = f
+
+    # class lprec
     lp = lpTransform.lpTransform(N, Nproj, Ns, filter_type, cor, interp_type)
     lp.precompute(1)
     lp.initcmem(1, gpu)
 
-    fid = open('./tests/data/Rfoam', 'rb')
-    tomo = np.float32(np.reshape(struct.unpack(
-        Nproj*N*'f', fid.read(Nproj*N*4)), [Ns, N, Nproj])).swapaxes(1, 2)
+    # init data
+    fag = cp.array(fa)
+    Rag = cp.zeros([Ns, Nproj, N], dtype="float32")
+    lp.fwdp(Rag, fag, gpu)
+    Ra = Rag.get()
 
     # rec
     fRfbp = np.zeros([Ns, N, N], dtype="float32")
-    fRfbp = lpmethods.fbp(
-        lp, fRfbp, tomo, num_iter['fbp'], reg_par['fbp'], gpu)
+    fRfbp = lpmethods.fbp(lp, fRfbp, Ra, num_iter['fbp'], reg_par['fbp'], gpu)
     fRgrad = np.zeros([Ns, N, N], dtype="float32")
     fRgrad = lpmethods.grad(
-        lp, fRgrad, tomo, num_iter['grad'], reg_par['grad'], gpu)
+        lp, fRgrad, Ra, num_iter['grad'], reg_par['grad'], gpu)
     fRcg = np.zeros([Ns, N, N], dtype="float32")
-    fRcg = lpmethods.cg(lp, fRcg, tomo, num_iter['cg'], reg_par['cg'], gpu)
+    fRcg = lpmethods.cg(lp, fRcg, Ra, num_iter['cg'], reg_par['cg'], gpu)
     fRem = np.zeros([Ns, N, N], dtype="float32")+1e-3
-    fRem = lpmethods.em(lp, fRem, tomo, num_iter['em'], reg_par['em'], gpu)
+    fRem = lpmethods.em(lp, fRem, Ra, num_iter['em'], reg_par['em'], gpu)
     fRtv = np.zeros([Ns, N, N], dtype="float32")
-    fRtv = lpmethods.tv(lp, fRtv, tomo, num_iter['tv'], reg_par['tv'], gpu)
+    fRtv = lpmethods.tv(lp, fRtv, Ra, num_iter['tv'], reg_par['tv'], gpu)
 
     norm0 = np.linalg.norm(fRfbp)
     norm1 = np.linalg.norm(fRgrad)
@@ -77,4 +87,4 @@ def test_foam():
 
 
 if __name__ == '__main__':
-    test_foam()
+    test_lpmethods()
