@@ -53,7 +53,7 @@ def test_gpus_many_map():
 
     ngpus = len(gpu_list)
     # number of slices for simultaneous processing by 1 gpu
-    # (depends on gpu memory size, chosen for gpus with >= 4GB memory)
+    # (depends on gpu memory size, chosen for gpus with >= 8GB memory)
     Nssimgpu = min(int(pow(2, 26)/float(N*N)), int(np.ceil(Ns/float(ngpus))))
 
     tic()
@@ -62,7 +62,7 @@ def test_gpus_many_map():
         N, Nproj, Nssimgpu, filter_type, cor, interp_type)
     # if not fbp, precompute for the forward transform
     lp.precompute(method != 'fbp')
-    print("Init time" % toc())
+    print("Init time %f" % (toc()))
     # list of slices sets for simultaneous processing b gpus
     ids_list = [None]*int(np.ceil(Ns/float(Nssimgpu)))
     for k in range(0, len(ids_list)):
@@ -81,7 +81,7 @@ def test_gpus_many_map():
         for reconi in e.map(partial(lpmultigpu, lp, lpmethods_list[method], recon, tomo, num_iter, reg_par, gpu_list), ids_list):
             recon[np.arange(0, reconi.shape[0])+shift] = reconi
             shift += reconi.shape[0]
-    print("Rec time %f" % toc())
+    print("Rec time %f" % (toc()))
     #norm = np.linalg.norm(recon)
     #print(norm)
     #return norm
