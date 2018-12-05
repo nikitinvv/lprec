@@ -40,14 +40,14 @@ def locate_cuda():
         home = os.path.dirname(os.path.dirname(nvcc))
         proc = subprocess.Popen("dirname $(ldconfig -p | grep libcudart.so | awk '{print $4}' | head -n 1)", shell=True, stdout=subprocess.PIPE)
         out, err = proc.communicate()
-        libdir = out.rstrip()
+        libdir = out.decode('ascii').rstrip()
 
     cudaconfig = {'home':home, 'nvcc':nvcc,
                   'include': pjoin(home, 'include'),
                   'lib': libdir}
-    #for k, v in cudaconfig.iteritems():
-        #if not os.path.exists(v):
-           # raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
+    for k, v in cudaconfig.items():
+        if not os.path.exists(v):
+            raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
 
     return cudaconfig
 
