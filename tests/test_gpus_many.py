@@ -78,7 +78,7 @@ def test_gpus_many():
         ids = range(igpu*Nspergpu, min(Ns, (igpu+1)*Nspergpu))
         recon[ids] = jobs[igpu].result()
 
-    norm = np.linalg.norm(recon)
+    norm = np.linalg.norm(np.float64(recon))
     print(norm)
     return norm
 

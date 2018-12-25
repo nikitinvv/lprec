@@ -42,7 +42,7 @@ def test_gpus_many_map():
     num_iter = 100
     recon = np.zeros([Ns, N, N], dtype="float32")+1e-3
     method = "grad"
-    gpu_list = [0, 1]
+    gpu_list = [0]
     # list of available methods for reconstruction
     lpmethods_list = {
         'fbp': lpmethods.fbp,
@@ -81,7 +81,7 @@ def test_gpus_many_map():
             recon[np.arange(0, reconi.shape[0])+shift] = reconi
             shift += reconi.shape[0]
 
-    norm = np.linalg.norm(recon)
+    norm = np.linalg.norm(np.float64(recon))
     print(norm)
     return norm
 

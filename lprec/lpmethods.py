@@ -178,3 +178,57 @@ def tv(lp, init_recon, tomo0, num_iter, reg_par, gpu):
         recon = 2*recon0 - recon
 
     return recon.get()
+
+def tve(lp, init_recon, tomo0, num_iter, reg_par, gpu):
+    """
+    Reconstruction with the total variation - entropy method
+    with the regularization parameter reg_par. 
+    Solving the problem sum(R(recon)-tomo*log(R(recon))) + reg_par*TV(recon) -> min
+    """
+
+    # choose device
+    cp.cuda.Device(gpu).use()
+    # Allocating necessary gpu arrays
+    recon = cp.array(init_recon)
+    tomo = cp.array(tomo0)
+    g = tomo*0
+    p = recon*0
+    recon0 = recon
+    prox0x = recon*0
+    prox0y = recon*0
+    div0 = recon*0
+    prox1 = tomo*0
+
+    lam = reg_par
+    c = 0.35  # 1/power_method(lp,tomo,num_iter)
+
+    # tv iterations
+    for i in range(0, num_iter):
+        # forward step
+        # compute proximal prox0
+        prox0x[:, :, :-1] += c*(recon[:, :, 1:]-recon[:, :, :-1])
+        prox0y[:, :-1, :] += c*(recon[:, 1:, :]-recon[:, :-1, :])
+        nprox = cp.array(cp.maximum(
+            1, (cp.sqrt(prox0x*prox0x+prox0y*prox0y)/lam)))
+        prox0x = prox0x/nprox
+        prox0y = prox0y/nprox
+        # compute proximal prox1
+        lp.fwdp(g, recon, gpu)
+        
+        tmp = 0.5*(prox1+c*g - 1 + cp.sqrt((prox1+c*g-1)**2 + 4 * c * tomo))
+        tmp[tmp<0]=0
+        prox1 = prox1+c*g-tmp
+
+        # backward step
+        recon = recon0
+        div0[:, :, 1:] = (prox0x[:, :, 1:]-prox0x[:, :, :-1])
+        div0[:, :, 0] = prox0x[:, :, 0]
+        div0[:, 1:, :] += (prox0y[:, 1:, :]-prox0y[:, :-1, :])
+        div0[:, 0, :] += prox0y[:, 0, :]
+        lp.adjp(p, prox1, gpu)
+        recon0 = recon0-c*p+c*div0
+
+        # update recon
+        recon = 2*recon0 - recon
+
+    return recon.get()

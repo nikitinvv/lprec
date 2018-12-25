@@ -35,8 +35,8 @@ def test_adj_ptr():
     lp.adjp(fRg, Rg, gpu)
 
     # self adjoint test
-    sum1 = sum(np.ndarray.flatten(Rfg.get())*np.ndarray.flatten(Rg.get()))
-    sum2 = sum(np.ndarray.flatten(fRg.get())*np.ndarray.flatten(fg.get()))
+    sum1 = sum(np.float64(np.ndarray.flatten(Rfg.get())*np.ndarray.flatten(Rg.get())))
+    sum2 = sum(np.float64(np.ndarray.flatten(fRg.get())*np.ndarray.flatten(fg.get())))
     err0 = np.linalg.norm(sum1-sum2)/np.linalg.norm(sum2)
     print(err0)
 
