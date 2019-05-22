@@ -38,13 +38,14 @@ def locate_cuda():
             raise EnvironmentError('The nvcc binary could not be '
                 'located in your $PATH. Either add it to your path, or set $CUDAHOME')
         home = os.path.dirname(os.path.dirname(nvcc))
-        proc = subprocess.Popen("dirname $(ldconfig -p | grep libcudart.so | awk '{print $4}' | head -n 1)", shell=True, stdout=subprocess.PIPE)
-        out, err = proc.communicate()
-        libdir = out.decode('ascii').rstrip()
+        print(home)
+        #proc = subprocess.Popen("dirname $(ldconfig -p | grep libcudart.so | awk '{print $4}' | head -n 1)", shell=True, stdout=subprocess.PIPE)
+        #out, err = proc.communicate()
+        #libdir = out.decode('ascii').rstrip()
 
     cudaconfig = {'home':home, 'nvcc':nvcc,
                   'include': pjoin(home, 'include'),
-                  'lib': libdir}
+                  'lib': pjoin(home,'lib64')}
     for k, v in cudaconfig.items():
         if not os.path.exists(v):
             raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
