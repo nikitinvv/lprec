@@ -1,0 +1,29 @@
+package:
+  name: lprec
+  version: '0.3'
+
+source:
+  path: .
+
+build:
+  number: 0
+  script:
+    - "$PYTHON -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}  
+  host:
+    - pip    
+    - setuptools    
+  run:
+    - numpy
+    - cupy
+
+about:
+    home: https://github.com/math-vrn/lprec
+    license: BSD 3-Clause
+    license_family: BSD    
+    summary: 'Log-polar based method for reconstruction.'
+
+
