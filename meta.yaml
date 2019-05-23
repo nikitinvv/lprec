@@ -25,7 +25,7 @@ requirements:
     - python={{ python }}
     - numpy
     - cupy      
-    - cudatoolkit 
+    - cudatoolkit=10.0
 
 about:
     home: https://github.com/math-vrn/lprec

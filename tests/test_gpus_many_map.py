@@ -12,24 +12,24 @@ from functools import partial
 
 
 bgpus = [] # busy gpus
+lock = threading.Lock()
 def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
     """
     Reconstruction Nssimgpu slices simultaneously on 1 GPU
     """
-    # take gpu number with respect to the current thread
     global bgpus
-    lock = threading.Lock()
     lock.acquire() # will block if lock is already held
     print('lock')
+    print(bgpus)
     for k in range(len(gpu_list)):
         if bgpus[k]==0:
             bgpus[k] = 1
             gpu_id = k
-            print(bgpus)
+            break
+    print(bgpus)
     print('release')
-    lock.release()        
+    lock.release()
     gpu = gpu_list[gpu_id]
-    #gpu = gpu_list[int(threading.current_thread().name.split("_", 1)[1])]
 
     # reconstruct
     recon[ids] = lpmethod(lp, recon[ids], tomo[ids], num_iter, reg_par, gpu)
@@ -42,7 +42,7 @@ def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
 def test_gpus_many_map():
     N = 512
     Nproj = np.int(3*N/2)
-    Ns = 32
+    Ns = 512
     filter_type = 'None'
     cor = int(N/2)-3
     interp_type = 'cubic'
@@ -56,8 +56,8 @@ def test_gpus_many_map():
     num_iter = 100
     recon = np.zeros([Ns, N, N], dtype="float32")+1e-3
     method = "grad"
-    gpu_list = [0,1]
-    
+    gpu_list = [0,1,2,3]
+
     # list of available methods for reconstruction
     lpmethods_list = {
         'fbp': lpmethods.fbp,
@@ -69,7 +69,7 @@ def test_gpus_many_map():
     try:
         cp.cuda.Device(1).use()
     except:
-        gpu_list = [0]        
+        gpu_list = [0]
     ngpus = len(gpu_list)
     global bgpus
     bgpus = np.zeros(ngpus)
