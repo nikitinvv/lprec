@@ -42,7 +42,7 @@ def test_gpus_many_map():
     num_iter = 100
     recon = np.zeros([Ns, N, N], dtype="float32")+1e-3
     method = "grad"
-    gpu_list = [0]
+    gpu_list = [0,1]
     # list of available methods for reconstruction
     lpmethods_list = {
         'fbp': lpmethods.fbp,
@@ -51,7 +51,10 @@ def test_gpus_many_map():
         'tv': lpmethods.tv,
         'em': lpmethods.em
     }
-
+    try:
+        cp.cuda.Device(1).use()
+    except:
+        gpu_list = [0]        
     ngpus = len(gpu_list)
     # number of slices for simultaneous processing by 1 gpu
     # (depends on gpu memory size, chosen for gpus with >= 4GB memory)
