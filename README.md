@@ -2,6 +2,9 @@
 Log-polar based method for tomography reconstruction.
 
 ## Installation
+conda install -c math-vrn cupy
+
+## Installation from source
 export CUDAHOME=path-to-cuda
 
 python setup.py install
