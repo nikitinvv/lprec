@@ -19,22 +19,18 @@ def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
     """
     global bgpus
     lock.acquire() # will block if lock is already held
-    print('lock')
-    print(bgpus)
     for k in range(len(gpu_list)):
         if bgpus[k]==0:
             bgpus[k] = 1
             gpu_id = k
             break
-    print(bgpus)
-    print('release')
     lock.release()
     gpu = gpu_list[gpu_id]
 
     # reconstruct
     recon[ids] = lpmethod(lp, recon[ids], tomo[ids], num_iter, reg_par, gpu)
     bgpus[gpu_id] = 0
-    print([gpu,ids])
+    #print([gpu,ids])
 
     return recon[ids]
 
@@ -42,7 +38,7 @@ def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
 def test_gpus_many_map():
     N = 512
     Nproj = np.int(3*N/2)
-    Ns = 512
+    Ns = 32
     filter_type = 'None'
     cor = int(N/2)-3
     interp_type = 'cubic'
