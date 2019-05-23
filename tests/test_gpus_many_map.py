@@ -11,16 +11,30 @@ from itertools import repeat
 from functools import partial
 
 
+bgpus = [] # busy gpus
 def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
     """
     Reconstruction Nssimgpu slices simultaneously on 1 GPU
     """
     # take gpu number with respect to the current thread
-    gpu = gpu_list[int(threading.current_thread().name.split("_", 1)[1])]
+    global bgpus
+    lock = threading.Lock()
+    lock.acquire() # will block if lock is already held
+    print('lock')
+    for k in range(len(gpu_list)):
+        if bgpus[k]==0:
+            bgpus[k] = 1
+            gpu_id = k
+            print(bgpus)
+    print('release')
+    lock.release()        
+    gpu = gpu_list[gpu_id]
+    #gpu = gpu_list[int(threading.current_thread().name.split("_", 1)[1])]
 
     # reconstruct
     recon[ids] = lpmethod(lp, recon[ids], tomo[ids], num_iter, reg_par, gpu)
- #   print([gpu,ids])
+    bgpus[gpu_id] = 0
+    print([gpu,ids])
 
     return recon[ids]
 
@@ -43,6 +57,7 @@ def test_gpus_many_map():
     recon = np.zeros([Ns, N, N], dtype="float32")+1e-3
     method = "grad"
     gpu_list = [0,1]
+    
     # list of available methods for reconstruction
     lpmethods_list = {
         'fbp': lpmethods.fbp,
@@ -56,6 +71,8 @@ def test_gpus_many_map():
     except:
         gpu_list = [0]        
     ngpus = len(gpu_list)
+    global bgpus
+    bgpus = np.zeros(ngpus)
     # number of slices for simultaneous processing by 1 gpu
     # (depends on gpu memory size, chosen for gpus with >= 4GB memory)
     Nssimgpu = min(int(pow(2, 24)/float(N*N)), int(np.ceil(Ns/float(ngpus))))
