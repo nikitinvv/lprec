@@ -11,9 +11,7 @@ from itertools import repeat
 from functools import partial
 
 
-bgpus = [] # busy gpus
-lock = threading.Lock()
-def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
+def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, lock, ids):
     """
     Reconstruction Nssimgpu slices simultaneously on 1 GPU
     """
@@ -89,11 +87,11 @@ def test_gpus_many_map():
         gpu = gpu_list[igpu]
         # if not fbp, allocate memory for the forward transform arrays
         lp.initcmem(method != 'fbp', gpu)
-
+    lock = threading.Lock()
     # run reconstruciton on many gpus
     with cf.ThreadPoolExecutor(ngpus) as e:
         shift = 0
-        for reconi in e.map(partial(lpmultigpu, lp, lpmethods_list[method], recon, tomo, num_iter, reg_par, gpu_list), ids_list):
+        for reconi in e.map(partial(lpmultigpu, lp, lpmethods_list[method], recon, tomo, num_iter, reg_par, gpu_list, lock), ids_list):
             recon[np.arange(0, reconi.shape[0])+shift] = reconi
             shift += reconi.shape[0]
 
