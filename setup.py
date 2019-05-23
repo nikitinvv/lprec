@@ -129,7 +129,7 @@ class custom_build_ext(build_ext):
 setup(name='lprec',
       # random metadata. there's more you can supploy
       author='Viktor Nikitin',
-      version='0.1',
+      version='1.0.0',
 
       # this is necessary so that the swigged python file gets picked up
       py_modules=['lprec'],

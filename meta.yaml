@@ -1,29 +1,34 @@
+{% set version = "1.0" %}
+
 package:
   name: lprec
-  version: '0.3'
+  version: {{ version }}
 
 source:
   path: .
 
 build:
   number: 0
-  script:
-    - "$PYTHON -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
+  script: 
+    - "{{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
 
 requirements:
   build:
-    - {{ compiler('cxx') }}  
+    - {{ compiler('cxx') }}
+    - python={{ python }} 
   host:
-    - pip    
-    - setuptools    
-  run:
+    - python={{ python }}
+    - pip
+    - setuptools
     - numpy
-    - cupy
+  run:
+    - python={{ python }}
+    - numpy
+    - cupy      
 
 about:
     home: https://github.com/math-vrn/lprec
     license: BSD 3-Clause
-    license_family: BSD    
-    summary: 'Log-polar based method for reconstruction.'
-
+    license_family: BSD
+    summary: 'Log-polar based method for tomographic reconstruction.'
 
