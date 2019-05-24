@@ -1,7 +1,7 @@
 from lprec import lpTransform
 from lprec import lpmethods
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import cupy as cp
 import struct

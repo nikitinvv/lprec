@@ -23,6 +23,7 @@ requirements:
     - numpy
   run:
     - python={{ python }}
+    - futures
     - numpy
     - cupy      
     - cudatoolkit
@@ -31,5 +32,4 @@ about:
     home: https://github.com/math-vrn/lprec
     license: BSD 3-Clause
     license_family: BSD
-    summary: 'Log-polar based method for tomographic reconstruction.'
-
+    summary: 'Log-polar based method for tomographic reconstruction'
