@@ -1,6 +1,7 @@
-import  os
+import os
 from os.path import join as pjoin
 from setuptools import setup
+from setuptools.command.build_py import build_py as _build_py
 from distutils.extension import Extension
 from distutils.command.build_ext import build_ext
 import subprocess
@@ -61,37 +62,37 @@ except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
 
-ext = Extension('_lpRgpu', 
-                sources=['src/callerr.cu', 'src/gridStorage.cu', 'src/lpRgpu.cu', 'src/params.cu','src/lpRgpu_wrap.cpp'],
-                library_dirs=[CUDA['lib']],
-                libraries=['cudart','cufft'],
-                runtime_library_dirs=[CUDA['lib']],
-                # this syntax is specific to this build system
-                # we're only going to use certain compiler args with nvcc and not with gcc
-                # the implementation of this trick is in customize_compiler() below
-                extra_compile_args={'gcc': [],
-                                    'nvcc': ['--compiler-options', "'-fPIC'"]},
-                include_dirs = [numpy_include, CUDA['include'], 'src'],)
-
-
-# check for swig
-if find_in_path('swig', os.environ['PATH']):
-    subprocess.check_call('swig -python -c++ -o src/lpRgpu_wrap.cpp src/lpRgpu.i', shell=True)
-else:
-    raise EnvironmentError('the swig executable was not found in your PATH')
-
+ext = Extension(
+    'lprec._lpRgpu',
+    swig_opts=['-c++', '-outdir', 'lprec', '-Isrc'],
+    sources=[
+        'src/callerr.cu',
+        'src/gridStorage.cu',
+        'src/lpRgpu.cu',
+        'src/lpRgpu.i',
+        'src/params.cu',
+    ],
+    library_dirs=[CUDA['lib']],
+    libraries=['cudart', 'cufft'],
+    runtime_library_dirs=[CUDA['lib']],
+    # this syntax is specific to this build system
+    # we're only going to use certain compiler args with nvcc and not with gcc
+    # the implementation of this trick is in customize_compiler() below
+    extra_compile_args={'gcc': [],
+                        'nvcc': ['--compiler-options', "'-fPIC'"]},
+    include_dirs=[numpy_include, CUDA['include'], 'src'],)
 
 
 def customize_compiler_for_nvcc(self):
     """inject deep into distutils to customize how the dispatch
     to gcc/nvcc works.
-    
+
     If you subclass UnixCCompiler, it's not trivial to get your subclass
     injected in, and still have the right customizations (i.e.
     distutils.sysconfig.customize_compiler) run on it. So instead of going
     the OO route, I have this. Note, it's kindof like a wierd functional
     subclassing going on."""
-    
+
     # tell the compiler it can processes .cu
     self.src_extensions.append('.cu')
 
@@ -120,25 +121,30 @@ def customize_compiler_for_nvcc(self):
     self._compile = _compile
 
 
-# run the customize_compiler
 class custom_build_ext(build_ext):
     def build_extensions(self):
         customize_compiler_for_nvcc(self.compiler)
         build_ext.build_extensions(self)
 
-setup(name='lprec',
-      # random metadata. there's more you can supploy
-      author='Viktor Nikitin',
-      version='1.0.0',
 
-      # this is necessary so that the swigged python file gets picked up
-      py_modules=['lprec'],
-      packages = ['lprec'],
-   
-      ext_modules = [ext],
+class build_py(_build_py):
+    """Do build_ext first so SWIG python module is copied after creation."""
+    def run(self):
+        self.run_command("build_ext")
+        return super().run()
 
-      # inject our custom trigger
-      cmdclass={'build_ext': custom_build_ext},
 
-      # since the package has c code, the egg cannot be zipped
-      zip_safe=False)
+setup(
+    name='lprec',
+    author='Viktor Nikitin',
+    version='1.0.0',
+    packages=['lprec'],
+    ext_modules=[ext],
+    # inject our custom trigger
+    cmdclass={
+        'build_py': build_py,
+        'build_ext': custom_build_ext,
+    },
+    # since the package has c code, the egg cannot be zipped
+    zip_safe=False
+)
