@@ -1,5 +1,4 @@
-include src/*cuh
-include src/*.i
-include README
+include README*
+include LICENSE*
 include tests/*
-include libtiff/*
+global-exclude *.py[co]
