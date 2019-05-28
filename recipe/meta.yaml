@@ -5,28 +5,31 @@ package:
   version: {{ version }}
 
 source:
-  path: .
+  path: ../
 
 build:
-  number: 0
-  script: 
+  number: 1
+  script:
+    # Use environment variables to set the correct $CUDAHOME
+    # Conda only provides shared libraries (not nvcc or drivers) at this time
+    - export CUDAHOME=/local/cuda-{{ cudatoolkit }}
     - "{{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
 
 requirements:
   build:
     - {{ compiler('cxx') }}
-    - python={{ python }} 
+    - swig
   host:
-    - python={{ python }}
+    - cudatoolkit {{ cudatoolkit }}
+    - numpy
     - pip
+    - python {{ python }}
     - setuptools
-    - numpy
   run:
-    - python={{ python }}
-    - futures
-    - numpy
-    - cupy      
-    - cudatoolkit
+    - {{ pin_compatible('cudatoolkit') }}
+    - cupy
+    - {{ pin_compatible('python') }}
+    - {{ pin_compatible('numpy') }}
 
 about:
     home: https://github.com/math-vrn/lprec
