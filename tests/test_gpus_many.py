@@ -40,6 +40,11 @@ def test_gpus_many():
     recon = np.zeros([Ns, N, N], dtype="float32")+1e-3
     method = "tv"
     gpu_list = [0, 1]
+    try:
+        cp.cuda.Device(1).use()
+    except:
+        gpu_list = [0]        
+    
     # list of available methods for reconstruction
     lpmethods_list = {
         'fbp': lpmethods.fbp,
@@ -49,6 +54,7 @@ def test_gpus_many():
         'em': lpmethods.em
     }
 
+    
     ngpus = len(gpu_list)
     # total number of slices for processing by 1 gpu
     Nspergpu = int(np.ceil(Ns/float(ngpus)))
@@ -78,7 +84,7 @@ def test_gpus_many():
         ids = range(igpu*Nspergpu, min(Ns, (igpu+1)*Nspergpu))
         recon[ids] = jobs[igpu].result()
 
-    norm = np.linalg.norm(recon)
+    norm = np.linalg.norm(np.float64(recon))
     print(norm)
     return norm
 

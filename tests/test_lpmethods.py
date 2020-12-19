@@ -1,7 +1,7 @@
 from lprec import lpTransform
 from lprec import lpmethods
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import cupy as cp
 import struct
@@ -45,7 +45,7 @@ def test_lpmethods():
     fag = cp.array(fa)
     Rag = cp.zeros([Ns, Nproj, N], dtype="float32")
     lp.fwdp(Rag, fag, gpu)
-    Ra = Rag.get()
+    Ra = Rag
 
     # rec
     fRfbp = np.zeros([Ns, N, N], dtype="float32")
@@ -60,11 +60,11 @@ def test_lpmethods():
     fRtv = np.zeros([Ns, N, N], dtype="float32")
     fRtv = lpmethods.tv(lp, fRtv, Ra, num_iter['tv'], reg_par['tv'], gpu)
 
-    norm0 = np.linalg.norm(fRfbp)
-    norm1 = np.linalg.norm(fRgrad)
-    norm2 = np.linalg.norm(fRcg)
-    norm3 = np.linalg.norm(fRem)
-    norm4 = np.linalg.norm(fRtv)
+    norm0 = np.linalg.norm(np.float64(fRfbp))
+    norm1 = np.linalg.norm(np.float64(fRgrad))
+    norm2 = np.linalg.norm(np.float64(fRcg))
+    norm3 = np.linalg.norm(np.float64(fRem))
+    norm4 = np.linalg.norm(np.float64(fRtv))
     # plt.subplot(2, 3, 1)
     # plt.imshow(fRfbp[-1, :, :])
     # plt.colorbar()

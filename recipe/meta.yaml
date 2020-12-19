@@ -1,0 +1,38 @@
+{% set version = "1.0" %}
+
+package:
+  name: lprec
+  version: {{ version }}
+
+source:
+  path: ../
+
+build:
+  number: 1
+  script:
+    # Use environment variables to set the correct $CUDAHOME
+    # Conda only provides shared libraries (not nvcc or drivers) at this time
+    - export CUDAHOME=/local/cuda-{{ cudatoolkit }}
+    - "{{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - swig
+  host:
+    - cudatoolkit {{ cudatoolkit }}
+    - numpy
+    - pip
+    - python {{ python }}
+    - setuptools
+  run:
+    - {{ pin_compatible('cudatoolkit') }}
+    - cupy
+    - {{ pin_compatible('python') }}
+    - {{ pin_compatible('numpy') }}
+
+about:
+    home: https://github.com/math-vrn/lprec
+    license: BSD 3-Clause
+    license_family: BSD
+    summary: 'Log-polar based method for tomographic reconstruction'

@@ -9,36 +9,27 @@ import concurrent.futures as cf
 import threading
 from itertools import repeat
 from functools import partial
+from timing import tic,toc
 
-
-def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, lock, ids):
+def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
     """
     Reconstruction Nssimgpu slices simultaneously on 1 GPU
     """
-    global bgpus
-    lock.acquire() # will block if lock is already held
-    for k in range(len(gpu_list)):
-        if bgpus[k]==0:
-            bgpus[k] = 1
-            gpu_id = k
-            break
-    lock.release()
-    gpu = gpu_list[gpu_id]
+    # take gpu number with respect to the current thread
+    gpu = gpu_list[int(threading.current_thread().name.split("_", 1)[1])]
 
     # reconstruct
+    print([gpu,ids])
     recon[ids] = lpmethod(lp, recon[ids], tomo[ids], num_iter, reg_par, gpu)
-    bgpus[gpu_id] = 0
-    #print([gpu,ids])
-
     return recon[ids]
 
 
 def test_gpus_many_map():
-    N = 512
-    Nproj = np.int(3*N/2)
-    Ns = 32
+    N = 2048
+    Nproj = N
+    Ns = 2048
     filter_type = 'None'
-    cor = int(N/2)-3
+    cor = N//2
     interp_type = 'cubic'
 
     # init random array
@@ -46,12 +37,11 @@ def test_gpus_many_map():
     R = np.reshape(R, [Ns, Nproj, N])
     # input parameters
     tomo = R
-    reg_par = -1  # *np.max(tomo)
+    reg_par = 0.001  # *np.max(tomo)
     num_iter = 100
     recon = np.zeros([Ns, N, N], dtype="float32")+1e-3
-    method = "grad"
-    gpu_list = [0,1,2,3]
-
+    method = "em"
+    gpu_list = [0, 1, 2, 3]
     # list of available methods for reconstruction
     lpmethods_list = {
         'fbp': lpmethods.fbp,
@@ -60,44 +50,41 @@ def test_gpus_many_map():
         'tv': lpmethods.tv,
         'em': lpmethods.em
     }
-    try:
-        cp.cuda.Device(1).use()
-    except:
-        gpu_list = [0]
-    ngpus = len(gpu_list)
-    global bgpus
-    bgpus = np.zeros(ngpus)
-    # number of slices for simultaneous processing by 1 gpu
-    # (depends on gpu memory size, chosen for gpus with >= 4GB memory)
-    Nssimgpu = min(int(pow(2, 24)/float(N*N)), int(np.ceil(Ns/float(ngpus))))
 
+    ngpus = len(gpu_list)
+    # number of slices for simultaneous processing by 1 gpu
+    # (depends on gpu memory size, chosen for gpus with >= 8GB memory)
+    Nssimgpu = min(int(pow(2, 26)/float(N*N)), int(np.ceil(Ns/float(ngpus))))
+
+    tic()
     # class lprec
     lp = lpTransform.lpTransform(
         N, Nproj, Nssimgpu, filter_type, cor, interp_type)
     # if not fbp, precompute for the forward transform
     lp.precompute(method != 'fbp')
-
+    print("Init time %f" % (toc()))
     # list of slices sets for simultaneous processing b gpus
     ids_list = [None]*int(np.ceil(Ns/float(Nssimgpu)))
     for k in range(0, len(ids_list)):
         ids_list[k] = range(k*Nssimgpu, min(Ns, (k+1)*Nssimgpu))
 
+    tic()
     # init memory for each gpu
     for igpu in range(0, ngpus):
         gpu = gpu_list[igpu]
         # if not fbp, allocate memory for the forward transform arrays
         lp.initcmem(method != 'fbp', gpu)
-    lock = threading.Lock()
+
     # run reconstruciton on many gpus
     with cf.ThreadPoolExecutor(ngpus) as e:
         shift = 0
-        for reconi in e.map(partial(lpmultigpu, lp, lpmethods_list[method], recon, tomo, num_iter, reg_par, gpu_list, lock), ids_list):
+        for reconi in e.map(partial(lpmultigpu, lp, lpmethods_list[method], recon, tomo, num_iter, reg_par, gpu_list), ids_list):
             recon[np.arange(0, reconi.shape[0])+shift] = reconi
             shift += reconi.shape[0]
-
-    norm = np.linalg.norm(np.float64(recon))
-    print(norm)
-    return norm
+    print("Rec time %f" % (toc()))
+    #norm = np.linalg.norm(recon)
+    #print(norm)
+    #return norm
 
 
 if __name__ == "__main__":

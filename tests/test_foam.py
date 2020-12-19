@@ -1,6 +1,6 @@
 from lprec import lpTransform
 from lprec import lpmethods
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import struct
 
@@ -20,12 +20,14 @@ def test_foam():
                 'cg': 16,
                 'em': 64,
                 'tv': 256,
+                'tve': 256,
                 }
     reg_par = {'fbp': 0,
                'grad': -1,
                'cg': 0,
                'em': 0.5,
                'tv': 0.001,
+               'tve': 0.001,
                }
 
     lp = lpTransform.lpTransform(N, Nproj, Ns, filter_type, cor, interp_type)
@@ -49,12 +51,14 @@ def test_foam():
     fRem = lpmethods.em(lp, fRem, tomo, num_iter['em'], reg_par['em'], gpu)
     fRtv = np.zeros([Ns, N, N], dtype="float32")
     fRtv = lpmethods.tv(lp, fRtv, tomo, num_iter['tv'], reg_par['tv'], gpu)
-
-    norm0 = np.linalg.norm(fRfbp)
-    norm1 = np.linalg.norm(fRgrad)
-    norm2 = np.linalg.norm(fRcg)
-    norm3 = np.linalg.norm(fRem)
-    norm4 = np.linalg.norm(fRtv)
+    fRtve = np.zeros([Ns, N, N], dtype="float32")
+    fRtve = lpmethods.tve(lp, fRtve, tomo, num_iter['tve'], reg_par['tve'], gpu)
+    norm0 = np.linalg.norm(np.float64(fRfbp))
+    norm1 = np.linalg.norm(np.float64(fRgrad))
+    norm2 = np.linalg.norm(np.float64(fRcg))
+    norm3 = np.linalg.norm(np.float64(fRem))
+    norm4 = np.linalg.norm(np.float64(fRtv))
+    norm5 = np.linalg.norm(np.float64(fRtve))
     # plt.subplot(2, 3, 1)
     # plt.imshow(fRfbp[-1, :, :])
     # plt.colorbar()
@@ -71,9 +75,9 @@ def test_foam():
     # plt.imshow(fRtv[-1, :, :])
     # plt.colorbar()
     # plt.show()
-    print([norm0, norm1, norm2, norm3, norm4])
+    print([norm0, norm1, norm2, norm3, norm4, norm5])
 
-    return [norm0, norm1, norm2, norm3, norm4]
+    return [norm0, norm1, norm2, norm3, norm4, norm5]
 
 
 if __name__ == '__main__':

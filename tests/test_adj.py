@@ -26,11 +26,11 @@ def test_adj():
 
     # scale test
     RR = lp.fwd(lp.adj(R, gpu), gpu)
-    scale = np.sum(R*RR)/np.sum(RR*RR)
+    scale = np.sum(np.float64(R*RR))/np.sum(np.float64(RR*RR))
 
     # dot product test
-    sum1 = sum(np.ndarray.flatten(Rrec)*np.ndarray.flatten(R))
-    sum2 = sum(np.ndarray.flatten(frec)*np.ndarray.flatten(frec))
+    sum1 = sum(np.float64(np.ndarray.flatten(Rrec)*np.ndarray.flatten(R)))
+    sum2 = sum(np.float64(np.ndarray.flatten(frec)*np.ndarray.flatten(frec)))
     err = np.linalg.norm(sum1-sum2)/np.linalg.norm(sum2)
     print([scale, err])
     return [scale, err]

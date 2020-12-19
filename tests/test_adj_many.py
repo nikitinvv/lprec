@@ -1,7 +1,6 @@
 from lprec import lpTransform
 from lprec import lpmethods
 
-import matplotlib.pyplot as plt
 import numpy as np
 import cupy as cp
 import struct
@@ -51,13 +50,13 @@ def test_adj_many():
     lp.fwdp(RfRg, fRg, gpu)
 
     # self adjoint test
-    sum1 = sum(np.ndarray.flatten(Rfg.get())*np.ndarray.flatten(Rg.get()))
-    sum2 = sum(np.ndarray.flatten(fRg.get())*np.ndarray.flatten(fg.get()))
+    sum1 = sum(np.float64(np.ndarray.flatten(Rfg.get())*np.ndarray.flatten(Rg.get())))
+    sum2 = sum(np.float64(np.ndarray.flatten(fRg.get())*np.ndarray.flatten(fg.get())))
     err0 = np.linalg.norm(sum1-sum2)/np.linalg.norm(sum2)
 
-    Rf = Rfg.get()
-    fR = fRg.get()
-    RfR = RfRg.get()
+    Rf = np.float64(Rfg.get())
+    fR = np.float64(fRg.get())
+    RfR = np.float64(RfRg.get())
 
     err1 = np.linalg.norm(fR-fa)/np.linalg.norm(fa)
     err2 = np.linalg.norm(RfR-Rf)/np.linalg.norm(Rf)
