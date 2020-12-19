@@ -3,7 +3,8 @@
 #include "config.cuh"
 #include "gridStorage.cuh"
 
-class lpRgpu{
+class lpRgpu
+{
 	//global parameters
 	int N0;
 	int N;
@@ -52,7 +53,7 @@ class lpRgpu{
 	cudaError_t err;
 
 public:
-	lpRgpu(float* params, int Nparams, int gpu);
+	lpRgpu(size_t params, int gpu);
 	~lpRgpu();
 	void printGlobalParameters();
 	void printFwdParameters();
@@ -62,9 +63,8 @@ public:
 	void readAdjParametersArr(int* paramsi, float* paramsf);
 	void printCurrentGPUMemory(const char* str = 0);
 
-	void initFwd(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf, int gpu);
-
-	void initAdj(int* paramsi, int Nparamsi, float* paramsf, int Nparamsf, int gpu);
+	void initFwd(size_t paramsi, size_t paramsf, int gpu);
+	void initAdj(size_t paramsi, size_t paramsf, int gpu);
 
 	void deleteFwd();
 	void deleteAdj();
@@ -73,9 +73,6 @@ public:
 	void execFwd();
 	void execAdj();
 
-	void execFwdMany(float* R, int Nslices2_, int Nproj_, int N_, float* f, int Nslices1_, int N2_, int N1_, int gpu);
-
-	void execAdjMany(float* f, int Nslices1_, int N2_, int N1_, float* R, int Nslices2_, int Nproj_, int N_, int gpu);
 	void execFwdManyPtr(size_t Rptr, size_t fptr, int Nslices0, int gpu);
 	void execAdjManyPtr(size_t fptr, size_t Rptr, int Nslices0,  int gpu);
 

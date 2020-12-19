@@ -19,31 +19,20 @@ class lpTransform:
         # precompute parameters for the lp method
         Pgl, self.glpars = initsgl.create_gl(
             self.N, self.Nproj, self.Nslices, self.cor, self.interp_type)
-        if(flg):
+        if(flg): # parameters for the forward transform
             Pfwd, self.fwdparsi, self.fwdparamsf = initsfwd.create_fwd(Pgl)
+        # parameters for the adjoint transform
         Padj, self.adjparsi, self.adjparamsf = initsadj.create_adj(
             Pgl, self.filter_type)
 
     def initcmem(self, flg, gpu):
-        # init memory in C (could be used by several gpus)
-        self.clphandle[gpu] = lpRgpu.lpRgpu(self.glpars, gpu)
+        # init memory in C (can be used by several gpus)
+        self.clphandle[gpu] = lpRgpu.lpRgpu(self.glpars.ctypes.data, gpu)
 
         if(flg):
-            self.clphandle[gpu].initFwd(self.fwdparsi, self.fwdparamsf, gpu)
-        self.clphandle[gpu].initAdj(self.adjparsi, self.adjparamsf, gpu)
-
-    def fwd(self, f, gpu):
-        # Forward projection operator
-        R = np.zeros([f.shape[0], self.Nproj, self.N], dtype='float32')
-        self.clphandle[gpu].execFwdMany(R, f, gpu)
-        return R
-
-    def adj(self, R, gpu):
-        # Adjoint projection operator
-        f = np.zeros([R.shape[0], self.N, self.N], dtype='float32')
-        self.clphandle[gpu].execAdjMany(f, R, gpu)
-        return f
-
+            self.clphandle[gpu].initFwd(self.fwdparsi.ctypes.data, self.fwdparamsf.ctypes.data, gpu)
+        self.clphandle[gpu].initAdj(self.adjparsi.ctypes.data, self.adjparamsf.ctypes.data, gpu)
+    
     def fwdp(self, R, f, gpu):
         # Forward projection operator. Work with GPU pointers
         self.clphandle[gpu].execFwdManyPtr(

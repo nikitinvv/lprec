@@ -1,5 +1,4 @@
 from numpy import *
-from lprec.lpRgpu import lpRgpu
 
 
 class Pgl:

@@ -1,6 +1,5 @@
 import unittest
 import numpy as np
-import test_adj
 import test_adj_ptr
 import test_adj_many
 import test_lpmethods
@@ -11,11 +10,7 @@ import test_gpus_many_map
 
 
 class TestLpMethods(unittest.TestCase):
-
-    def test_adj(self):
-        [scale, err] = test_adj.test_adj()
-        self.assertTrue((np.abs(scale-1) < 0.1) & (err < 0.01))
-
+    
     def test_adj_ptr(self):
         err = test_adj_ptr.test_adj_ptr()
         self.assertTrue(err < 0.01)

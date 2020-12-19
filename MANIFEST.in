@@ -1,4 +1,6 @@
-include README*
-include LICENSE*
-include tests/*
+include README.md
+include LICENSE
 global-exclude *.py[co]
+global-exclude *.i
+global-exclude *.cpp
+include tests/*
