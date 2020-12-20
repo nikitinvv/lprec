@@ -1,5 +1,5 @@
 import numpy as np
-
+import cupy as cp
 
 class Pfwd:
     def __init__(self, fZgpu, lp2C1, lp2C2, p2lp1, p2lp2, cids, pids):
@@ -70,30 +70,30 @@ def create_fwd(P):
 
 
 def fzeta_loop_weights(Ntheta, Nrho, betas, rhos, a, osthlarge):
-    krho = np.arange(-Nrho/2, Nrho/2, dtype='float32')
+    krho = cp.arange(-Nrho/2, Nrho/2, dtype='float32')
     Nthetalarge = osthlarge*Ntheta
-    thsplarge = np.arange(-Nthetalarge/2, Nthetalarge/2,
+    thsplarge = cp.arange(-Nthetalarge/2, Nthetalarge/2,
                           dtype='float32') / Nthetalarge*betas
-    fZ = np.zeros([Nrho, Nthetalarge], dtype='complex64')
-    h = np.ones(Nthetalarge, dtype='float32')
+    fZ = cp.zeros([Nrho, Nthetalarge], dtype='complex64')
+    h = cp.ones(Nthetalarge, dtype='float32')
     # correcting = 1+[-3 4 -1]/24correcting(1) = 2*(correcting(1)-0.5)
     # correcting = 1+array([-23681,55688,-66109,57024,-31523,9976,-1375])/120960.0correcting[0] = 2*(correcting[0]-0.5)
-    correcting = 1+np.array([-216254335, 679543284, -1412947389, 2415881496, -3103579086,
+    correcting = 1+cp.array([-216254335, 679543284, -1412947389, 2415881496, -3103579086,
                              2939942400, -2023224114, 984515304, -321455811, 63253516, -5675265])/958003200.0
     correcting[0] = 2*(correcting[0]-0.5)
     h[0] = h[0]*(correcting[0])
     for j in range(1, len(correcting)):
         h[j] = h[j]*correcting[j]
         h[-1-j+1] = h[-1-j+1]*(correcting[j])
-    for j in range(0, len(krho)):
-        fcosa = pow(np.cos(thsplarge), (-2*np.pi*1j*krho[j]/rhos-1-a))
-        fZ[j, :] = np.fft.fftshift(np.fft.fft(np.fft.fftshift(h*fcosa)))
-    fZ = fZ[:, range(int(Nthetalarge/2-Ntheta/2), int(Nthetalarge/2+Ntheta/2))]
+    for j in range(len(krho)):
+        fcosa = pow(cp.cos(thsplarge), (-2*cp.pi*1j*krho[j]/rhos-1-a))
+        fZ[j, :] = cp.fft.fftshift(cp.fft.fft(cp.fft.fftshift(h*fcosa)))
+    fZ = fZ[:, Nthetalarge//2-Ntheta//2:Nthetalarge//2+Ntheta//2]
     fZ = fZ*(thsplarge[1]-thsplarge[0])
     # put imag to 0 for the border
     fZ[0] = 0
     fZ[:, 0] = 0
-    return fZ
+    return fZ.get()
 
 
 def savePfwdpars(P):

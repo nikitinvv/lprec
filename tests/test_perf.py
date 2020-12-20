@@ -27,7 +27,7 @@ def lpmultigpu(lp, lpmethod, recon, tomo, num_iter, reg_par, gpu_list, ids):
 def test_gpus_many_map():
     N = 2048
     Nproj = N
-    Ns = 2048
+    Ns = 128
     filter_type = 'None'
     cor = N//2
     interp_type = 'cubic'
@@ -40,8 +40,8 @@ def test_gpus_many_map():
     reg_par = 0.001  # *np.max(tomo)
     num_iter = 100
     recon = np.zeros([Ns, N, N], dtype="float32")+1e-3
-    method = "em"
-    gpu_list = [0, 1, 2, 3]
+    method = "grad"
+    gpu_list = [0]
     # list of available methods for reconstruction
     lpmethods_list = {
         'fbp': lpmethods.fbp,
