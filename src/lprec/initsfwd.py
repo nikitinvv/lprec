@@ -14,37 +14,35 @@ class Pfwd:
 
 def create_fwd(P):
     # convolution function
-    fZ = np.fft.fftshift(fzeta_loop_weights(
-        P.Ntheta, P.Nrho, 2*P.beta, P.g-np.log(P.am), 0, 4))
-
+    fZ = cp.fft.fftshift(fzeta_loop_weights(
+        P.Ntheta, P.Nrho, 2*P.beta, P.g-cp.log(P.am), 0, 4))
     # (lp2C1,lp2C2), transformed log-polar to Cartesian coordinates
-    tmp1 = np.outer(np.exp(P.rhosp), np.cos(P.thsp)).flatten()
-    tmp2 = np.outer(np.exp(P.rhosp), np.sin(P.thsp)).flatten()
+    tmp1 = cp.outer(cp.exp(cp.array(P.rhosp)), cp.cos(cp.array(P.thsp))).flatten()
+    tmp2 = cp.outer(cp.exp(cp.array(P.rhosp)), cp.sin(cp.array(P.thsp))).flatten()
     lp2C1 = [None]*P.Nspan
     lp2C2 = [None]*P.Nspan
-    for k in range(0, P.Nspan):
-        lp2C1[k] = ((tmp1-(1-P.aR))*np.cos(k*P.beta+P.beta/2) -
-                    tmp2*np.sin(k*P.beta+P.beta/2))/P.aR
-        lp2C2[k] = ((tmp1-(1-P.aR))*np.sin(k*P.beta+P.beta/2) +
-                    tmp2*np.cos(k*P.beta+P.beta/2))/P.aR
+    for k in range(P.Nspan):
+        lp2C1[k] = ((tmp1-(1-P.aR))*cp.cos(k*P.beta+P.beta/2) -
+                    tmp2*cp.sin(k*P.beta+P.beta/2))/P.aR
+        lp2C2[k] = ((tmp1-(1-P.aR))*cp.sin(k*P.beta+P.beta/2) +
+                    tmp2*cp.cos(k*P.beta+P.beta/2))/P.aR
         lp2C2[k] *= (-1)  # adjust for Tomopy
-        cids = np.where((lp2C1[k]**2+lp2C2[k]**2) <= 1)[0]
+        cids = cp.where((lp2C1[k]**2+lp2C2[k]**2) <= 1)[0]
         lp2C1[k] = lp2C1[k][cids]
         lp2C2[k] = lp2C2[k][cids]
-
     # pids, index in polar grids after splitting by spans
     pids = [None]*P.Nspan
-    [s0, th0] = np.meshgrid(P.s, P.proj)
+    [s0, th0] = cp.meshgrid(P.s, P.proj)
     th0 = th0.flatten()
     s0 = s0.flatten()
     for k in range(0, P.Nspan):
-        pids[k] = np.where((th0 >= k*P.beta-P.beta/2) &
+        pids[k] = cp.where((th0 >= k*P.beta-P.beta/2) &
                            (th0 < k*P.beta+P.beta/2))[0]
 
     # (p2lp1,p2lp2), transformed polar to log-polar coordinates
     p2lp1 = [None]*P.Nspan
     p2lp2 = [None]*P.Nspan
-    for k in range(0, P.Nspan):
+    for k in range(P.Nspan):
         th00 = th0[pids[k]]-k*P.beta
         s00 = s0[pids[k]]
         p2lp1[k] = th00
@@ -56,9 +54,8 @@ def create_fwd(P):
         lp2C2[k] = (lp2C2[k]+1)/2*(P.N-1)
         p2lp1[k] = (p2lp1[k]-P.thsp[0])/(P.thsp[-1]-P.thsp[0])*(P.Ntheta-1)
         p2lp2[k] = (p2lp2[k]-P.rhosp[0])/(P.rhosp[-1]-P.rhosp[0])*(P.Nrho-1)
-
-    const = np.sqrt(P.N*P.osangles/P.Nproj)*np.pi/4 / \
-        P.aR/np.sqrt(2)  # adjust constant
+    const = cp.sqrt(P.N*P.osangles/P.Nproj)*cp.pi/4 / \
+        P.aR/cp.sqrt(2)  # adjust constant
     fZgpu = fZ[:, :P.Ntheta//2+1]*const
     if(P.interp_type == 'cubic'):
         fZgpu = fZgpu/(P.B3com[:, :P.Ntheta//2+1])
@@ -93,36 +90,37 @@ def fzeta_loop_weights(Ntheta, Nrho, betas, rhos, a, osthlarge):
     # put imag to 0 for the border
     fZ[0] = 0
     fZ[:, 0] = 0
-    return fZ.get()
+    return fZ
 
 
 def savePfwdpars(P):
     Nspan = len(P.pids)
     Npids = [None]*Nspan
-    for k in range(0, Nspan):
+    for k in range(Nspan):
         Npids[k] = len(P.pids[k])
     Ncids = len(P.lp2C1[0])
-    fZvec = np.zeros([P.fZgpu.size*2], dtype='float32')
+    fZvec = cp.zeros([P.fZgpu.size*2], dtype='float32')
     fZvec[::2] = P.fZgpu.real.flatten()
     fZvec[1::2] = P.fZgpu.imag.flatten()
-
+    
     parsi = []
     parsf = []
-
-    parsi = np.append(parsi, Npids)
-    for k in range(0, Nspan):
-        parsi = np.append(parsi, P.pids[k])
-    parsi = np.append(parsi, Ncids)
-    for k in range(0, Nspan):
-        parsf = np.append(parsf, P.lp2C1[k])
-    for k in range(0, Nspan):
-        parsf = np.append(parsf, P.lp2C2[k])
-    for k in range(0, Nspan):
-        parsf = np.append(parsf, P.p2lp1[k])
-    for k in range(0, Nspan):
-        parsf = np.append(parsf, P.p2lp2[k])
-    parsi = np.append(parsi, P.cids)
-    parsf = np.append(parsf, fZvec)
-    parsi = np.int32(parsi)
-    parsf = np.float32(parsf)
+    
+    parsi.append(Npids)
+    for k in range(Nspan):
+        parsi.append(P.pids[k].get())
+    parsi.append([Ncids])
+    for k in range(Nspan):
+        parsf.append(P.lp2C1[k].get())
+    for k in range(Nspan):
+        parsf.append(P.lp2C2[k].get())
+    for k in range(Nspan):
+        parsf.append(P.p2lp1[k].get())
+    for k in range(Nspan):
+        parsf.append(P.p2lp2[k].get())    
+    parsi.append(P.cids.get())
+    parsf.append(fZvec.get())
+    parsi = np.concatenate(parsi).astype('int32')
+    parsf = np.concatenate(parsf).astype('float32')
+    
     return (parsi, parsf)

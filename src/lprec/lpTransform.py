@@ -3,8 +3,9 @@ import lprec.initsfwd as initsfwd
 import lprec.initsadj as initsadj
 import lprec.lpRgpu as lpRgpu
 import numpy as np
-
-
+import cupy as cp
+import time
+import gc
 class lpTransform:
     def __init__(self, N, Nproj, Nslices, filter_type, cor, interp_type):
         self.N = N
@@ -24,9 +25,14 @@ class lpTransform:
         # parameters for the adjoint transform
         Padj, self.adjparsi, self.adjparamsf = initsadj.create_adj(
             Pgl, self.filter_type)
-
+        # free GPU memory 
+        Pgl = []            
+        Pfwd = []            
+        Padj = []                       
+                             
+        
     def initcmem(self, flg, gpu):
-        # init memory in C (can be used by several gpus)
+        # init memory in C (can be used by several gpus)        
         self.clphandle[gpu] = lpRgpu.lpRgpu(self.glpars.ctypes.data, gpu)
 
         if(flg):
