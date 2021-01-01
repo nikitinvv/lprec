@@ -1,6 +1,9 @@
 # LpRadon
 Log-polar based method for tomography reconstruction.
 
+Andersson, Fredrik, Marcus Carlsson, and Viktor V. Nikitin. "Fast algorithms and efficient GPU implementations for the Radon transform and the back-projection operator represented as convolution operators." SIAM Journal on Imaging Sciences 9.2 (2016): 637-664.
+
+
 ## Installation
 python setup.py install
 
