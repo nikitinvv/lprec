@@ -5,6 +5,7 @@ import cupy as cp
 
 
 def test_adj_ptr():
+    
     N = 512
     Nproj = np.int(3*N/2)
     Nslices = 1
