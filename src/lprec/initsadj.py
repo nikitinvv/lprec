@@ -104,7 +104,7 @@ def create_adj(P, filter_type):
         fZgpu = fZgpu/(P.B3com[:, :P.Ntheta//2+1])
 
     # filter
-    if (filter_type != 'None'):
+    if (filter_type != 'none'):
         filter = take_filter(P.N, filter_type)
     else:
         filter = None
