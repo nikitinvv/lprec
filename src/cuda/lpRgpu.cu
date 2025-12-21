@@ -16,14 +16,23 @@ lpRgpu::lpRgpu(size_t params, int gpu)
 	cudaMemcpy(derho,erho,Ntheta*Nrho*sizeof(float),cudaMemcpyHostToDevice);
 
 	cudaChannelFormatDesc texf_desc = cudaCreateChannelDesc<float>();	
-	cudaExtent volumeSize = make_cudaExtent(Ntheta,Nrho,Nslices); 
+	err = cudaMalloc3DArray(&dfla, &texf_desc,make_cudaExtent(Ntheta,Nrho,Nslices),cudaArrayLayered); if (err!=0) callErr(cudaGetErrorString(err));
 	
-	err = cudaMalloc3DArray(&dfla, &texf_desc,volumeSize,cudaArrayLayered); if (err!=0) callErr(cudaGetErrorString(err));
-	texfl.addressMode[0] = cudaAddressModeWrap;
-	texfl.addressMode[1] = cudaAddressModeWrap;
-	texfl.filterMode = cudaFilterModeLinear;
-	texfl.normalized  = true;
-	cudaBindTextureToArray(texfl, dfla,texf_desc);  
+    // texture objects
+    cudaTextureDesc             texDescr;    
+    memset(&texDescr,0,sizeof(cudaTextureDesc));
+    
+	texDescr.addressMode[0] = cudaAddressModeWrap;
+	texDescr.addressMode[1] = cudaAddressModeWrap;
+	texDescr.filterMode = cudaFilterModeLinear;
+    texDescr.normalizedCoords = true;
+    texDescr.readMode = cudaReadModeElementType;
+    
+    cudaResourceDesc texRes;    
+    memset(&texRes,0,sizeof(cudaResourceDesc));
+    texRes.res.array.array    = dfla;
+    cudaCreateTextureObject(&texfl, &texRes, &texDescr, NULL);    
+	
 
 	//fft plans for Nslices slices
 	cufftResult res1,res2;
@@ -45,7 +54,6 @@ lpRgpu::~lpRgpu()
 	cudaFree(derho);
 	cudaFree(dfl);
 	cudaFree(dflc);
-	cudaUnbindTexture(texfl);
 	cudaFreeArray(dfla);	
 	cufftDestroy(plan_forward);
 	cufftDestroy(plan_inverse);
@@ -70,15 +78,24 @@ void lpRgpu::initFwd(size_t paramsi, size_t paramsf, int gpu)
 
 	//copy Fourier transform of Z	
 	cudaMemcpy(dfZfwd,fZfwd,Ntheta_R2C*Nrho*sizeof(float2),cudaMemcpyHostToDevice);
+	cudaChannelFormatDesc texf_desc = cudaCreateChannelDesc<float>();	
+	err = cudaMalloc3DArray(&dfa, &texf_desc,make_cudaExtent(N,N,Nslices),cudaArrayLayered); if (err!=0) callErr(cudaGetErrorString(err));
+	
 
-	cudaChannelFormatDesc texf_desc = cudaCreateChannelDesc<float>();
-	cudaExtent volumeSize = make_cudaExtent(N,N,Nslices); 
-	err = cudaMalloc3DArray(&dfa, &texf_desc, volumeSize,cudaArrayLayered); if (err!=0) callErr(cudaGetErrorString(err));
-	texf.addressMode[0] = cudaAddressModeWrap;
-	texf.addressMode[1] = cudaAddressModeWrap;	
-	texf.filterMode = cudaFilterModeLinear;
-	texf.normalized = true;
-	cudaBindTextureToArray(texf, dfa,texf_desc);
+	// texture objects
+    cudaTextureDesc             texDescr;    
+    memset(&texDescr,0,sizeof(cudaTextureDesc));
+    
+	texDescr.addressMode[0] = cudaAddressModeWrap;
+	texDescr.addressMode[1] = cudaAddressModeWrap;
+	texDescr.filterMode = cudaFilterModeLinear;
+    texDescr.normalizedCoords = true;
+    texDescr.readMode = cudaReadModeElementType;
+    
+    cudaResourceDesc texRes;    
+    memset(&texRes,0,sizeof(cudaResourceDesc));
+    texRes.res.array.array    = dfa;
+    cudaCreateTextureObject(&texf, &texRes, &texDescr, NULL);    
 
 	//init result with zeros
 	err = cudaMemset(dR, 0, Nslices*Nproj*N*sizeof(float)); if (err!=0) callErr(cudaGetErrorString(err));
@@ -87,7 +104,6 @@ void lpRgpu::deleteFwd()
 {
 	delete[] fZfwd;
 	cudaFree(dtmpf);
-	cudaUnbindTexture(texf);
 	cudaFreeArray(dfa);
 	cudaFree(dfZfwd);
 	delete fgs;
@@ -107,15 +123,23 @@ void lpRgpu::initAdj(size_t paramsi, size_t paramsf, int gpu)
 
 	//copy Fourier transform of adj Z
 	cudaMemcpy(dfZadj,fZadj,Ntheta_R2C*Nrho*sizeof(float2),cudaMemcpyHostToDevice);
-
 	cudaChannelFormatDesc texf_desc = cudaCreateChannelDesc<float>();	
-	cudaExtent volumeSize = make_cudaExtent(N,Nproj,Nslices); 
-	err = cudaMalloc3DArray(&dRa, &texf_desc, volumeSize,cudaArrayLayered); if (err!=0) callErr(cudaGetErrorString(err));
-	texR.addressMode[0] = cudaAddressModeWrap;
-	texR.addressMode[1] = cudaAddressModeWrap;
-	texR.filterMode = cudaFilterModeLinear;
-	texR.normalized = true;
-	cudaBindTextureToArray(texR, dRa,texf_desc);
+	err = cudaMalloc3DArray(&dRa, &texf_desc,make_cudaExtent(N,Nproj,Nslices),cudaArrayLayered); if (err!=0) callErr(cudaGetErrorString(err));
+
+		// texture objects
+    cudaTextureDesc             texDescr;    
+    memset(&texDescr,0,sizeof(cudaTextureDesc));
+    
+	texDescr.addressMode[0] = cudaAddressModeWrap;
+	texDescr.addressMode[1] = cudaAddressModeWrap;
+	texDescr.filterMode = cudaFilterModeLinear;
+    texDescr.normalizedCoords = true;
+    texDescr.readMode = cudaReadModeElementType;
+    
+    cudaResourceDesc texRes;    
+    memset(&texRes,0,sizeof(cudaResourceDesc));
+    texRes.res.array.array    = dRa;
+    cudaCreateTextureObject(&texR, &texRes, &texDescr, NULL);  
 
 	//init result with zeros
 	err = cudaMemset(df, 0, Nslices*N*N*sizeof(float)); if (err!=0) callErr(cudaGetErrorString(err));
@@ -136,7 +160,6 @@ void lpRgpu::deleteAdj()
 	delete[] fZadj;
 	cudaFree(dtmpR);
 	cudaFree(dfZadj);
-	cudaUnbindTexture(texR);
 	cudaFreeArray(dRa);
 	delete ags;
 
@@ -260,7 +283,7 @@ void lpRgpu::execFwd()
 
 		//interp Cartesian to log-polar grid
 		GS31 = (uint)ceil(ceil(sqrtf((float)fgs->Ncidsfwd))/(float)MBS31);GS32 = (uint)ceil(ceil(sqrtf((float)fgs->Ncidsfwd))/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid(GS31,GS32,GS33);
-		interp<<<dimGrid, dimBlock>>>(0+interp_type*3,dfl,fgs->dlp2C1[k],fgs->dlp2C2[k],MBS31*GS31,fgs->Ncidsfwd,N,N,Nslices,fgs->dcidsfwd,Ntheta*Nrho);
+		interp<<<dimGrid, dimBlock>>>(texf,dfl,fgs->dlp2C1[k],fgs->dlp2C2[k],MBS31*GS31,fgs->Ncidsfwd,N,N,Nslices,fgs->dcidsfwd,Ntheta*Nrho);
 		
 		//multiplication e^{\rho}
 		GS31 = (uint)ceil(Ntheta/(float)MBS31);GS32 = (uint)ceil(Nrho/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid1(GS31,GS32,GS33);
@@ -281,7 +304,7 @@ void lpRgpu::execFwd()
 
 		//interp log-polar to polar grid
 		GS31 = (uint)ceil(ceil(sqrtf((float)fgs->Npids[k]))/(float)MBS31);GS32 = (uint)ceil(ceil(sqrtf((float)fgs->Npids[k]))/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid3(GS31,GS32,GS33);
-		interp<<<dimGrid3, dimBlock>>>(2+interp_type*3,dR,fgs->dp2lp1[k],fgs->dp2lp2[k],MBS31*GS31,fgs->Npids[k],Ntheta,Nrho,Nslices,fgs->dpids[k],Nproj*N);
+		interp<<<dimGrid3, dimBlock>>>(texfl,dR,fgs->dp2lp1[k],fgs->dp2lp2[k],MBS31*GS31,fgs->Npids[k],Ntheta,Nrho,Nslices,fgs->dpids[k],Nproj*N);
 	}
 }
 
@@ -304,11 +327,11 @@ void lpRgpu::execAdj()
 		cudaMemset(dfl, 0, Nslices*Ntheta*Nrho*sizeof(float)); 
 		//interp from polar to log-polar grid
 		GS31 = (uint)ceil(ceil(sqrt(ags->Nlpidsadj))/(float)MBS31); GS32 = (uint)ceil(ceil(sqrt(ags->Nlpidsadj))/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid(GS31,GS32,GS33);
-		interp<<<dimGrid, dimBlock>>>(1+interp_type*3,dfl,ags->dlp2p2[k],ags->dlp2p1[k],MBS31*GS31,ags->Nlpidsadj,N,Nproj,Nslices,ags->dlpidsadj,Ntheta*Nrho);
+		interp<<<dimGrid, dimBlock>>>(texR,dfl,ags->dlp2p2[k],ags->dlp2p1[k],MBS31*GS31,ags->Nlpidsadj,N,Nproj,Nslices,ags->dlpidsadj,Ntheta*Nrho);
 
 		//interp from polar to log-polar grid additional points
 		GS31 = (uint)ceil(ceil(sqrt(ags->Nwids))/(float)MBS31); GS32 = (uint)ceil(ceil(sqrt(ags->Nwids))/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid4(GS31,GS32,GS33);
-		interp<<<dimGrid4, dimBlock>>>(1+interp_type*3,dfl,ags->dlp2p2w[k],ags->dlp2p1w[k],MBS31*GS31,ags->Nwids,N,Nproj,Nslices,ags->dwids,Ntheta*Nrho);
+		interp<<<dimGrid4, dimBlock>>>(texR,dfl,ags->dlp2p2w[k],ags->dlp2p1w[k],MBS31*GS31,ags->Nwids,N,Nproj,Nslices,ags->dwids,Ntheta*Nrho);
 
 		//Forward FFT
 		cufftExecR2C(plan_forward, (cufftReal*)dfl,(cufftComplex*)dflc);
@@ -325,7 +348,7 @@ void lpRgpu::execAdj()
 
 		//interp from log-polar to Cartesian grid
 		GS31 = (uint)ceil(ceil(sqrt(ags->Ncidsadj))/(float)MBS31); GS32 = (uint)ceil(ceil(sqrt(ags->Ncidsadj))/(float)MBS32);GS33 = (uint)ceil(Nslices/(float)MBS33);dim3 dimGrid3(GS31,GS32,GS33);
-		interp<<<dimGrid3, dimBlock>>>(2+interp_type*3,df,ags->dC2lp1[k],ags->dC2lp2[k],MBS31*GS31,ags->Ncidsadj,Ntheta,Nrho,Nslices,ags->dcidsadj,N*N);
+		interp<<<dimGrid3, dimBlock>>>(texfl,df,ags->dC2lp1[k],ags->dC2lp2[k],MBS31*GS31,ags->Ncidsadj,Ntheta,Nrho,Nslices,ags->dcidsadj,N*N);
 	}
 }
 

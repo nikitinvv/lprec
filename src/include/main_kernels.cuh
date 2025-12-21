@@ -1,9 +1,6 @@
 #include"math_operators.cuh"
 #define Pole -0.267949192431123f//(sqrt(3.0f)-2.0f)  //pole for cubic b-spline
 
-texture<float, cudaTextureType2DLayered, cudaReadModeElementType> texf; //type 0
-texture<float, cudaTextureType2DLayered, cudaReadModeElementType> texR; //type 1
-texture<float, cudaTextureType2DLayered, cudaReadModeElementType> texfl; //type 2
 
 //compute weigts for the cubic B spline
 __host__ __device__ void bspline_weights(float2 fraction, float2& w0, float2& w1, float2& w2, float2& w3)
@@ -18,16 +15,16 @@ __host__ __device__ void bspline_weights(float2 fraction, float2& w0, float2& w1
 	w3 = 1.0f/6.0f * squared * fraction;
 }
 
-__device__ float linearTex2D(texture<float, cudaTextureType2DLayered, cudaReadModeElementType> tex, float x, float y, float z, int N0,int N1)
+__device__ float linearTex2D(cudaTextureObject_t tex, float x, float y, float z, int N0,int N1)
 {
 	float2 t0;
 	t0.x = x/(float)N0;
 	t0.y = y/(float)N1;
-	return tex2DLayered(tex, t0.x, t0.y, z);
+	return tex2DLayered<float>(tex, t0.x, t0.y, z);
 }
 
 //cubic interpolation via two linear interpolations for several slices, texture is not normalized
-__device__ float cubicTex2D(texture<float, cudaTextureType2DLayered, cudaReadModeElementType> tex, float x, float y, float z, int N0,int N1)
+__device__ float cubicTex2D(cudaTextureObject_t tex, float x, float y, float z, int N0,int N1)
 {
 	// transform the coordinate from [0,extent] to [-0.5, extent-0.5]
 	const float2 coord_grid = make_float2(x - 0.5f, y - 0.5f);
@@ -46,10 +43,10 @@ __device__ float cubicTex2D(texture<float, cudaTextureType2DLayered, cudaReadMod
 	t1.x = h1.x/(float)N0;
 	t0.y = h0.y/(float)N1;
 	t1.y = h1.y/(float)N1;
-	float tex00 = tex2DLayered(tex, t0.x, t0.y, z);
-	float tex10 = tex2DLayered(tex, t1.x, t0.y, z);
-	float tex01 = tex2DLayered(tex, t0.x, t1.y, z);
-	float tex11 = tex2DLayered(tex, t1.x, t1.y, z);
+	float tex00 = tex2DLayered<float>(tex, t0.x, t0.y, z);
+	float tex10 = tex2DLayered<float>(tex, t1.x, t0.y, z);
+	float tex01 = tex2DLayered<float>(tex, t0.x, t1.y, z);
+	float tex11 = tex2DLayered<float>(tex, t1.x, t1.y, z);
 
 
 	// weigh along the y-direction
@@ -61,7 +58,7 @@ __device__ float cubicTex2D(texture<float, cudaTextureType2DLayered, cudaReadMod
 }
 
 //interp from Cartesian to log-polar grid
-__global__ void interp(int interp_id, float *fo, float* x, float* y, int W, int Np,int N1,int N2, int ni, int* cids, int step2d)
+__global__ void interp(cudaTextureObject_t tex, float *fo, float* x, float* y, int W, int Np,int N1,int N2, int ni, int* cids, int step2d)
 {
 	uint tx = blockIdx.x*blockDim.x + threadIdx.x;
 	uint ty = blockIdx.y*blockDim.y + threadIdx.y;
@@ -69,18 +66,9 @@ __global__ void interp(int interp_id, float *fo, float* x, float* y, int W, int 
 	uint tid = ty*W+tx;
 	if(tid>=Np||tz>=ni) return;
 	float u = x[tid]+0.5f;
-	float v = y[tid]+0.5f;
-	
-	switch(interp_id)//no overhead, all threads have the same way
-	{ 		
-		case 0: fo[tz*step2d+cids[tid]] += linearTex2D(texf, u, v, tz,N1,N2);break;
-		case 1: fo[tz*step2d+cids[tid]] += linearTex2D(texR, u, v, tz,N1,N2);break;   
-		case 2: fo[tz*step2d+cids[tid]] += linearTex2D(texfl, u, v, tz,N1,N2);break;   
-		case 3: fo[tz*step2d+cids[tid]] += cubicTex2D(texf, u, v, tz,N1,N2);break;
-		case 4: fo[tz*step2d+cids[tid]] += cubicTex2D(texR, u, v, tz,N1,N2);break;   
-		case 5: fo[tz*step2d+cids[tid]] += cubicTex2D(texfl, u, v, tz,N1,N2);break;   
+	float v = y[tid]+0.5f;    //#######check!!!!
+	fo[tz*step2d+cids[tid]] += linearTex2D(tex, u, v, tz,N1,N2);
 
-	}	
 }
 
 //multiplication by e^\rho

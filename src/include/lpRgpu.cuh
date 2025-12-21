@@ -1,5 +1,6 @@
 #include <cufft.h>
 #include <stdio.h>
+#include <cuda_runtime.h>
 #include "config.cuh"
 #include "gridStorage.cuh"
 
@@ -51,6 +52,9 @@ class lpRgpu
 
 	int interp_type;
 	cudaError_t err;
+	cudaTextureObject_t texfl;  
+    cudaTextureObject_t texf;  
+	cudaTextureObject_t texR;  
 
 public:
 	lpRgpu(size_t params, int gpu);

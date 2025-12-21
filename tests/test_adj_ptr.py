@@ -7,9 +7,9 @@ import cupy as cp
 def test_adj_ptr():
     
     N = 512
-    Nproj = np.int(3*N/2)
+    Nproj = int(3*N/2)
     Nslices = 1
-    filter_type = 'None'
+    filter_type = 'none'
     cor = N/2
     interp_type = 'cubic'
     gpu = 0
