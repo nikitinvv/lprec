@@ -23,7 +23,7 @@ Install from source::
 
 Dependencies::
 
-  cupy, scikit-build
+  cupy, scikit-build, swig
 
 Tests:
   See tests/
